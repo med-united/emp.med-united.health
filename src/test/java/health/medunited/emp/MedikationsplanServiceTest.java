@@ -19,7 +19,6 @@ import javax.net.ssl.TrustManager;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.ws.BindingProvider;
@@ -50,10 +49,16 @@ if it does not listen, start with:
 */
 
 public class MedikationsplanServiceTest {
-   MedikationsplanService mpService = new MedikationsplanService();
+   MedikationsplanService mpService;
 
    @BeforeEach
    void init() {
+      ContextType contextType = new ContextType();
+      contextType.setMandantId("Mandant1");
+      contextType.setWorkplaceId("Workplace1");
+      contextType.setClientSystemId("ClientID1");
+      mpService = new MedikationsplanService(contextType);
+
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
@@ -65,9 +70,8 @@ public class MedikationsplanServiceTest {
    public void test() throws JAXBException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException,
          FileNotFoundException, KeyStoreException, IOException, KeyManagementException,
          de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, FaultMessage, DatatypeConfigurationException {
-      JAXBContext jaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
-      MedikationsPlan mpW = (MedikationsPlan) jaxbContext.createUnmarshaller()
-            .unmarshal(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
+     
+      MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
 
       // CardServicePortType cardService = new CardService(getClass()
       //   .getResource("/CardService.wsdl"))
@@ -108,7 +112,7 @@ public class MedikationsplanServiceTest {
          Holder<Boolean> egkValidCR = new Holder<>();
          Holder<byte[]> dataCR = new Holder<>();
 
-         aMTSService.readConsent(ehcHandle, hpcHandle, getContext(), statusCR, dataCR, egkValidCR);
+         aMTSService.readConsent(ehcHandle, hpcHandle, mpService.getContext(), statusCR, dataCR, egkValidCR);
 
          Einwilligung consentFromCard = (Einwilligung) consentJaxbContext
             .createUnmarshaller()
@@ -144,47 +148,35 @@ public class MedikationsplanServiceTest {
 
          marshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
          marshaller.marshal(consent, dataCW);
-         aMTSService.writeConsent(ehcHandle, hpcHandle, getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
+         aMTSService.writeConsent(ehcHandle, hpcHandle, mpService.getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
       }
 
-      ByteArrayOutputStream dataMPW = new ByteArrayOutputStream();
-      Marshaller mpMarshaller = jaxbContext.createMarshaller();
-
-      mpMarshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
-      mpMarshaller.marshal(mpW, dataMPW);
+      byte[] dataBytesMPW =  mpService.marshalMedicationPlan(mpW);
 
       Holder<Status> statusW = new Holder<>();
       Holder<Boolean> egkValidW = new Holder<>();
       // Write Medikationplan
-      aMTSService.writeMP(ehcHandle, hpcHandle, getContext(), dataMPW.toByteArray(), "AMTS-PIN", statusW, egkValidW);
+      aMTSService.writeMP(ehcHandle, hpcHandle, mpService.getContext(), dataBytesMPW, "AMTS-PIN", statusW, egkValidW);
 
       Holder<Status> statusMPR = new Holder<>();
       Holder<byte[]> dataMPR = new Holder<>();
       Holder<Boolean> egkValidMPR = new Holder<>();
       Holder<Integer> egkUsageMPR = new Holder<>();
-      aMTSService.readMP(ehcHandle, hpcHandle, getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
-
-      Unmarshaller mpUnmarshaller = jaxbContext.createUnmarshaller();
-      MedikationsPlan mpR = (MedikationsPlan) mpUnmarshaller.unmarshal(new ByteArrayInputStream(dataMPR.value));
+      aMTSService.readMP(ehcHandle, hpcHandle, mpService.getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
+    
+      MedikationsPlan mpR = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(dataMPR.value));
+      
       assertEquals(mpW.getInstanzId(), mpR.getInstanzId());
    }
 
    private String getFirstCardOfType(EventServicePortType eventService, CardTypeType type) throws FaultMessage {
       GetCards parameter = new GetCards();
-      parameter.setContext(getContext());
+      parameter.setContext(mpService.getContext());
       parameter.setCardType(type);
       GetCardsResponse getCardsResponse = eventService.getCards(parameter);
 
       String ehcHandle = getCardsResponse.getCards().getCard().get(0).getCardHandle();
       return ehcHandle;
-   }
-
-   private ContextType getContext() {
-      ContextType contextType = new ContextType();
-      contextType.setMandantId("Mandant1");
-      contextType.setWorkplaceId("Workplace1");
-      contextType.setClientSystemId("ClientID1");
-      return contextType;
    }
 
    private void configureBindingProvider(BindingProvider bindingProvider)
@@ -197,14 +189,15 @@ public class MedikationsplanServiceTest {
                 KeyManagementException {
       SSLContext sslContext = SSLContext.getInstance("TLS");
 
-      sslContext.init(null, new TrustManager[] { new FakeX509TrustManager() }, null);
-
       if (sslContext != null) {
-         bindingProvider.getRequestContext().put("com.sun.xml.ws.transport.https.client.SSLSocketFactory",
-               sslContext.getSocketFactory());
+         sslContext.init(null, new TrustManager[] { new FakeX509TrustManager() }, null);
+         bindingProvider.getRequestContext()
+            .put("com.sun.xml.ws.transport.https.client.SSLSocketFactory",
+                  sslContext.getSocketFactory());
       }
-      bindingProvider.getRequestContext().put("com.sun.xml.ws.transport.https.client.hostname.verifier",
-            new FakeHostnameVerifier());
+      bindingProvider.getRequestContext()
+         .put("com.sun.xml.ws.transport.https.client.hostname.verifier",
+               new FakeHostnameVerifier());
    }
 
 }
