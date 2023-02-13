@@ -3,7 +3,6 @@ package health.medunited.emp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -14,9 +13,7 @@ import java.security.cert.CertificateException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.ws.Holder;
@@ -41,6 +38,7 @@ if it does not listen, start with:
 
 public class MedicationsPlanWriteIT {
    MedikationsPlanService mpService;
+   ConsentService consentService;
    EventServicePort eventServicePort;
    AmtsServicePort amtsServicePort;
 
@@ -52,7 +50,8 @@ public class MedicationsPlanWriteIT {
       contextType.setClientSystemId("ClientID1");
       mpService = new MedikationsPlanService(contextType);
       eventServicePort = new EventServicePort("http://localhost/eventservice", contextType);
-      amtsServicePort = new AmtsServicePort("http://localhost/amtsservice", contextType);
+      amtsServicePort = new AmtsServicePort("http://localhost/amtsservice");
+      consentService = new ConsentService(amtsServicePort.getPort(), contextType);
 
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
@@ -76,23 +75,11 @@ public class MedicationsPlanWriteIT {
 
       // configureBindingProvider(bp);
 
-      String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
       String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
-
-      JAXBContext consentJaxbContext = JAXBContext.newInstance(Einwilligung.class);
+      String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
 
       try {
-         Holder<Status> statusCR = new Holder<>();
-         Holder<Boolean> egkValidCR = new Holder<>();
-         Holder<byte[]> dataCR = new Holder<>();
-
-         amtsServicePort.getPort()
-            .readConsent(ehcHandle, hpcHandle, mpService.getContext(), statusCR, dataCR, egkValidCR);
-
-         Einwilligung consentR = (Einwilligung) consentJaxbContext
-            .createUnmarshaller()
-            .unmarshal(new ByteArrayInputStream(dataCR.value));
-
+         Einwilligung consentR = consentService.readConsent(ehcHandle, hpcHandle);
          System.out.println("Einwillung vom: "
             + consentR.getEinwilligungsdatum() + " "
             + consentR.getVorname() + " " 
@@ -102,32 +89,23 @@ public class MedicationsPlanWriteIT {
          System.out.println("Error during reading Consent. Writing Consent");
          ex.printStackTrace();
 
-         Holder<Status> statusCW = new Holder<>();
-         Holder<Boolean> egkValidCW = new Holder<>();
-
          // Write Einwilligung
-         Einwilligung consent = new Einwilligung();
-         consent.setEinwilligungsdatum(
+         Einwilligung consentW = new Einwilligung();
+         consentW.setEinwilligungsdatum(
                DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) Calendar.getInstance()));
-         consent.setVersion("1.0.1");
-         consent.setVorname("Manuel");
-         consent.setNachname("Blechschmidt");
-         consent.setStrasse("Droysenstr.");
-         consent.setHausnummer("7");
-         consent.setPostleitzahl("10629");
-         consent.setOrt("Berlin");
+         consentW.setVersion("1.0.1");
+         consentW.setVorname("Manuel");
+         consentW.setNachname("Blechschmidt");
+         consentW.setStrasse("Droysenstr.");
+         consentW.setHausnummer("7");
+         consentW.setPostleitzahl("10629");
+         consentW.setOrt("Berlin");
 
-         ByteArrayOutputStream dataCW = new ByteArrayOutputStream();
-         Marshaller marshaller = consentJaxbContext.createMarshaller();
-
-         marshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
-         marshaller.marshal(consent, dataCW);
-         amtsServicePort.getPort()
-            .writeConsent(ehcHandle, hpcHandle, mpService.getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
+         consentService.writeConsent(consentW, ehcHandle, hpcHandle);
       }
 
       MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
-      byte[] dataMPW =  mpService.marshalMedicationPlan(mpW);
+      byte[] dataMPW = mpService.marshalMedicationPlan(mpW);
 
       Holder<Status> statusW = new Holder<>();
       Holder<Boolean> egkValidW = new Holder<>();

@@ -10,25 +10,25 @@ import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 
 public class EventServicePort {
-    private EventServicePortType eventServicePort;
+    private EventServicePortType eventServicePortType;
     private ContextType context;
 
     public EventServicePort(String endpoint, ContextType context) {
         this.context = context;
-        eventServicePort = new EventService(getClass()
+        eventServicePortType = new EventService(getClass()
                 .getResource("/EventService.wsdl"))
                 .getEventServicePort();
-        BindingProvider bp = (BindingProvider) eventServicePort;
+        BindingProvider bp = (BindingProvider) eventServicePortType;
         bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         BindingProviderConfigurer.configure(bp);
     }
 
-    public String getFirstCardHandleOfType(CardTypeType type) throws FaultMessage {
+    public String getFirstCardHandleOfType(CardTypeType cardType) throws FaultMessage {
         GetCards parameter = new GetCards();
-        parameter.setContext(context);
-        parameter.setCardType(type);
+        parameter.setContext(this.context);
+        parameter.setCardType(cardType);
 
-        return this.eventServicePort
+        return this.eventServicePortType
                 .getCards(parameter)
                 .getCards()
                 .getCard()
