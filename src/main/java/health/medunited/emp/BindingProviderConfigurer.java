@@ -3,12 +3,14 @@ package health.medunited.emp;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.xml.ws.BindingProvider;
 
 public class BindingProviderConfigurer {
-    public static void configure(BindingProvider bindingProvider) {
+
+    public static void configure(BindingProvider bindingProvider, TrustManager trustManager, HostnameVerifier hostnameVerifier) {
         SSLContext sslContext;
         try {
             sslContext = SSLContext.getInstance("TLS");
@@ -18,7 +20,7 @@ public class BindingProviderConfigurer {
 
         if (sslContext != null) {
             try {
-                sslContext.init(null, new TrustManager[] { new FakeX509TrustManager() }, null);
+                sslContext.init(null, new TrustManager[] { trustManager }, null);
             } catch (KeyManagementException e) {
                 throw new IllegalStateException("Unable to configure TrustManager", e);
             }
@@ -27,7 +29,6 @@ public class BindingProviderConfigurer {
                             sslContext.getSocketFactory());
         }
         bindingProvider.getRequestContext()
-                .put("com.sun.xml.ws.transport.https.client.hostname.verifier",
-                        new FakeHostnameVerifier());
+                .put("com.sun.xml.ws.transport.https.client.hostname.verifier", hostnameVerifier);
     }
 }

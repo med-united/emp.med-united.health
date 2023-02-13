@@ -1,5 +1,7 @@
 package health.medunited.emp;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.TrustManager;
 import javax.xml.ws.BindingProvider;
 
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
@@ -13,14 +15,14 @@ public class EventServicePort {
     private EventServicePortType eventServicePortType;
     private ContextType context;
 
-    public EventServicePort(String endpoint, ContextType context) {
+    public EventServicePort(String endpoint, ContextType context, TrustManager trustManager, HostnameVerifier hostnameVerifier) {
         this.context = context;
         eventServicePortType = new EventService(getClass()
                 .getResource("/EventService.wsdl"))
                 .getEventServicePort();
         BindingProvider bp = (BindingProvider) eventServicePortType;
         bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
-        BindingProviderConfigurer.configure(bp);
+        BindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
     }
 
     public String getFirstCardHandleOfType(CardTypeType cardType) throws FaultMessage {

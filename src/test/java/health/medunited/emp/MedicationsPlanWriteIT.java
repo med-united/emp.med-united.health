@@ -12,6 +12,8 @@ import java.security.cert.CertificateException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.TrustManager;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -45,10 +47,12 @@ public class MedicationsPlanWriteIT {
       contextType.setMandantId("Mandant1");
       contextType.setWorkplaceId("Workplace1");
       contextType.setClientSystemId("ClientID1");
-      eventServicePort = new EventServicePort("http://localhost/eventservice", contextType);
-      amtsServicePort = new AmtsServicePort("http://localhost/amtsservice");
+      TrustManager trustManager = new FakeX509TrustManager();
+      HostnameVerifier hostnameVerifier = new FakeHostnameVerifier();
+      eventServicePort = new EventServicePort("http://localhost/eventservice", contextType, trustManager, hostnameVerifier);
+      amtsServicePort = new AmtsServicePort("http://localhost/amtsservice", trustManager, hostnameVerifier);
       consentService = new ConsentService(amtsServicePort.getPort(), contextType);
-      mpService = new MedikationsPlanService(amtsServicePort.getPort(),contextType);
+      mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
 
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
@@ -61,10 +65,10 @@ public class MedicationsPlanWriteIT {
    public void test() throws JAXBException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException,
          FileNotFoundException, KeyStoreException, IOException, KeyManagementException,
          de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, FaultMessage, DatatypeConfigurationException {
-     
+
       // CardServicePortType cardService = new CardService(getClass()
-      //   .getResource("/CardService.wsdl"))
-      //   .getCardServicePort();
+      // .getResource("/CardService.wsdl"))
+      // .getCardServicePort();
 
       // BindingProvider bp = (BindingProvider) cardService;
       // bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
@@ -78,10 +82,10 @@ public class MedicationsPlanWriteIT {
       try {
          Einwilligung consentR = consentService.readConsent(ehcHandle, hpcHandle);
          System.out.println("Einwillung vom: "
-            + consentR.getEinwilligungsdatum() + " "
-            + consentR.getVorname() + " " 
-            + consentR.getNachname());
-            
+               + consentR.getEinwilligungsdatum() + " "
+               + consentR.getVorname() + " "
+               + consentR.getNachname());
+
       } catch (Exception ex) {
          System.out.println("Error during reading Consent. Writing Consent");
          ex.printStackTrace();
@@ -106,7 +110,7 @@ public class MedicationsPlanWriteIT {
       mpService.writeMedicationsPlan(mpW, ehcHandle, hpcHandle, "AMTS-PIN");
 
       MedikationsPlan mpR = mpService.readMedicationsPlan(ehcHandle, hpcHandle, "AMTS-PIN");
-      
+
       assertEquals(mpW.getInstanzId(), mpR.getInstanzId());
    }
 
