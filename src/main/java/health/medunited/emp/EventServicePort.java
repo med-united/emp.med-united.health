@@ -10,6 +10,7 @@ import de.gematik.ws.conn.eventservice.v7.GetCards;
 import de.gematik.ws.conn.eventservice.wsdl.v7.EventService;
 import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
+import health.medunited.security.BindingProviderConfigurer;
 
 public class EventServicePort {
     private EventServicePortType eventServicePortType;

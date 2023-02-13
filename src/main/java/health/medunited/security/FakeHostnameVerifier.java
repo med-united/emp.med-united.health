@@ -1,4 +1,4 @@
-package health.medunited.emp;
+package health.medunited.security;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;

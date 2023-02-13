@@ -6,6 +6,7 @@ import javax.xml.ws.BindingProvider;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSService;
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
+import health.medunited.security.BindingProviderConfigurer;
 
 public class AmtsServicePort {
     private AMTSServicePortType amtsServicePort;
