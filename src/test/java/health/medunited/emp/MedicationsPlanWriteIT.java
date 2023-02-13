@@ -14,21 +14,16 @@ import java.security.cert.CertificateException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.gematik.ws.conn.amts.amtsservice.v1.AMTSService;
-import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
@@ -44,9 +39,10 @@ if it does not listen, start with:
    sudo ./start.sh localhost 8081
 */
 
-public class MedikationsplanServiceTest {
+public class MedicationsPlanWriteIT {
    MedikationsPlanService mpService;
    EventServicePort eventServicePort;
+   AmtsServicePort amtsServicePort;
 
    @BeforeEach
    void init() {
@@ -56,6 +52,7 @@ public class MedikationsplanServiceTest {
       contextType.setClientSystemId("ClientID1");
       mpService = new MedikationsPlanService(contextType);
       eventServicePort = new EventServicePort("http://localhost/eventservice", contextType);
+      amtsServicePort = new AmtsServicePort("http://localhost/amtsservice", contextType);
 
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
@@ -82,14 +79,6 @@ public class MedikationsplanServiceTest {
       String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
       String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
 
-      AMTSServicePortType aMTSServicePort = new AMTSService(getClass().getResource("/AMTSService.wsdl"))
-            .getAMTSServicePort();
-
-      BindingProvider bp2 = (BindingProvider) aMTSServicePort;
-      bp2.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://localhost/amtsservice");
-
-      configureBindingProvider(bp2);
-
       JAXBContext consentJaxbContext = JAXBContext.newInstance(Einwilligung.class);
 
       try {
@@ -97,16 +86,17 @@ public class MedikationsplanServiceTest {
          Holder<Boolean> egkValidCR = new Holder<>();
          Holder<byte[]> dataCR = new Holder<>();
 
-         aMTSServicePort.readConsent(ehcHandle, hpcHandle, mpService.getContext(), statusCR, dataCR, egkValidCR);
+         amtsServicePort.getPort()
+            .readConsent(ehcHandle, hpcHandle, mpService.getContext(), statusCR, dataCR, egkValidCR);
 
-         Einwilligung consentFromCard = (Einwilligung) consentJaxbContext
+         Einwilligung consentR = (Einwilligung) consentJaxbContext
             .createUnmarshaller()
             .unmarshal(new ByteArrayInputStream(dataCR.value));
 
          System.out.println("Einwillung vom: "
-            + consentFromCard.getEinwilligungsdatum() + " "
-            + consentFromCard.getVorname() + " " 
-            + consentFromCard.getNachname());
+            + consentR.getEinwilligungsdatum() + " "
+            + consentR.getVorname() + " " 
+            + consentR.getNachname());
 
       } catch (Exception ex) {
          System.out.println("Error during reading Consent. Writing Consent");
@@ -132,7 +122,8 @@ public class MedikationsplanServiceTest {
 
          marshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
          marshaller.marshal(consent, dataCW);
-         aMTSServicePort.writeConsent(ehcHandle, hpcHandle, mpService.getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
+         amtsServicePort.getPort()
+            .writeConsent(ehcHandle, hpcHandle, mpService.getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
       }
 
       MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
@@ -141,38 +132,19 @@ public class MedikationsplanServiceTest {
       Holder<Status> statusW = new Holder<>();
       Holder<Boolean> egkValidW = new Holder<>();
       // Write Medikationplan
-      aMTSServicePort.writeMP(ehcHandle, hpcHandle, mpService.getContext(), dataMPW, "AMTS-PIN", statusW, egkValidW);
+      amtsServicePort.getPort()
+         .writeMP(ehcHandle, hpcHandle, mpService.getContext(), dataMPW, "AMTS-PIN", statusW, egkValidW);
 
       Holder<Status> statusMPR = new Holder<>();
       Holder<byte[]> dataMPR = new Holder<>();
       Holder<Boolean> egkValidMPR = new Holder<>();
       Holder<Integer> egkUsageMPR = new Holder<>();
-      aMTSServicePort.readMP(ehcHandle, hpcHandle, mpService.getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
+      amtsServicePort.getPort()
+         .readMP(ehcHandle, hpcHandle, mpService.getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
     
       MedikationsPlan mpR = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(dataMPR.value));
       
       assertEquals(mpW.getInstanzId(), mpR.getInstanzId());
-   }
-
-   private void configureBindingProvider(BindingProvider bindingProvider)
-         throws NoSuchAlgorithmException, 
-                CertificateException, 
-                FileNotFoundException, 
-                IOException,
-                UnrecoverableKeyException, 
-                KeyStoreException, 
-                KeyManagementException {
-      SSLContext sslContext = SSLContext.getInstance("TLS");
-
-      if (sslContext != null) {
-         sslContext.init(null, new TrustManager[] { new FakeX509TrustManager() }, null);
-         bindingProvider.getRequestContext()
-            .put("com.sun.xml.ws.transport.https.client.SSLSocketFactory",
-                  sslContext.getSocketFactory());
-      }
-      bindingProvider.getRequestContext()
-         .put("com.sun.xml.ws.transport.https.client.hostname.verifier",
-               new FakeHostnameVerifier());
    }
 
 }
