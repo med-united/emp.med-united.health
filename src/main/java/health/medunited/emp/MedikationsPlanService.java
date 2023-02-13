@@ -30,10 +30,6 @@ public class MedikationsPlanService {
         }
     }
 
-    public ContextType getContext() {
-        return this.context;
-    }
-
     public MedikationsPlan unmarshalMedicationPlan(InputStream xmlInputStream) {
         try {
             return (MedikationsPlan) mpJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
@@ -42,7 +38,7 @@ public class MedikationsPlanService {
         }
     }
 
-    public byte[] marshalMedicationPlan(MedikationsPlan mp) {
+    private byte[] marshalMedicationPlan(MedikationsPlan mp) {
         ByteArrayOutputStream dataMP = new ByteArrayOutputStream();
         Marshaller mpMarshaller;
         try {

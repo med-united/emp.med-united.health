@@ -30,7 +30,7 @@ public class ConsentService {
         }
     }
 
-    private Einwilligung unmarshalConsent(InputStream xmlInputStream) {
+    public Einwilligung unmarshalConsent(InputStream xmlInputStream) {
         try {
             return (Einwilligung) consentJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
         } catch (JAXBException e) {

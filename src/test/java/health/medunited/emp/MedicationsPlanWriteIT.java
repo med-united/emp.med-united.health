@@ -2,19 +2,11 @@ package health.medunited.emp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
@@ -34,12 +26,15 @@ check if it listens on port 80:
 if it does not listen, start with:
    sudo ./start.sh localhost 8081
 */
+import io.quarkus.test.junit.QuarkusTest;
 
+@QuarkusTest
 public class MedicationsPlanWriteIT {
    MedikationsPlanService mpService;
    ConsentService consentService;
    EventServicePort eventServicePort;
    AmtsServicePort amtsServicePort;
+   String usingPin = "AMTS-PIN";
 
    @BeforeEach
    void init() {
@@ -62,9 +57,7 @@ public class MedicationsPlanWriteIT {
    }
 
    @Test
-   public void test() throws JAXBException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException,
-         FileNotFoundException, KeyStoreException, IOException, KeyManagementException,
-         de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, FaultMessage, DatatypeConfigurationException {
+   public void test() throws FaultMessage, DatatypeConfigurationException {
 
       // CardServicePortType cardService = new CardService(getClass()
       // .getResource("/CardService.wsdl"))
@@ -90,26 +83,15 @@ public class MedicationsPlanWriteIT {
          System.out.println("Error during reading Consent. Writing Consent");
          ex.printStackTrace();
 
-         // Write Einwilligung
-         Einwilligung consentW = new Einwilligung();
-         consentW.setEinwilligungsdatum(
-               DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) Calendar.getInstance()));
-         consentW.setVersion("1.0.1");
-         consentW.setVorname("Manuel");
-         consentW.setNachname("Blechschmidt");
-         consentW.setStrasse("Droysenstr.");
-         consentW.setHausnummer("7");
-         consentW.setPostleitzahl("10629");
-         consentW.setOrt("Berlin");
-
+         Einwilligung consentW = consentService.unmarshalConsent(getClass().getResourceAsStream("/Einwilligung_2.xml"));
+         consentW.setEinwilligungsdatum(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) Calendar.getInstance()));
          consentService.writeConsent(consentW, ehcHandle, hpcHandle);
       }
 
       MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
+      mpService.writeMedicationsPlan(mpW, ehcHandle, hpcHandle, usingPin);
 
-      mpService.writeMedicationsPlan(mpW, ehcHandle, hpcHandle, "AMTS-PIN");
-
-      MedikationsPlan mpR = mpService.readMedicationsPlan(ehcHandle, hpcHandle, "AMTS-PIN");
+      MedikationsPlan mpR = mpService.readMedicationsPlan(ehcHandle, hpcHandle, usingPin);
 
       assertEquals(mpW.getInstanzId(), mpR.getInstanzId());
    }
