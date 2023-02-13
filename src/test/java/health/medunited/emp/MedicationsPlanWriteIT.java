@@ -2,7 +2,6 @@ package health.medunited.emp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -16,13 +15,11 @@ import java.util.GregorianCalendar;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.ws.Holder;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
-import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.Einwilligung;
@@ -48,10 +45,10 @@ public class MedicationsPlanWriteIT {
       contextType.setMandantId("Mandant1");
       contextType.setWorkplaceId("Workplace1");
       contextType.setClientSystemId("ClientID1");
-      mpService = new MedikationsPlanService(contextType);
       eventServicePort = new EventServicePort("http://localhost/eventservice", contextType);
       amtsServicePort = new AmtsServicePort("http://localhost/amtsservice");
       consentService = new ConsentService(amtsServicePort.getPort(), contextType);
+      mpService = new MedikationsPlanService(amtsServicePort.getPort(),contextType);
 
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
@@ -84,7 +81,7 @@ public class MedicationsPlanWriteIT {
             + consentR.getEinwilligungsdatum() + " "
             + consentR.getVorname() + " " 
             + consentR.getNachname());
-
+            
       } catch (Exception ex) {
          System.out.println("Error during reading Consent. Writing Consent");
          ex.printStackTrace();
@@ -105,22 +102,10 @@ public class MedicationsPlanWriteIT {
       }
 
       MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
-      byte[] dataMPW = mpService.marshalMedicationPlan(mpW);
 
-      Holder<Status> statusW = new Holder<>();
-      Holder<Boolean> egkValidW = new Holder<>();
-      // Write Medikationplan
-      amtsServicePort.getPort()
-         .writeMP(ehcHandle, hpcHandle, mpService.getContext(), dataMPW, "AMTS-PIN", statusW, egkValidW);
+      mpService.writeMedicationsPlan(mpW, ehcHandle, hpcHandle, "AMTS-PIN");
 
-      Holder<Status> statusMPR = new Holder<>();
-      Holder<byte[]> dataMPR = new Holder<>();
-      Holder<Boolean> egkValidMPR = new Holder<>();
-      Holder<Integer> egkUsageMPR = new Holder<>();
-      amtsServicePort.getPort()
-         .readMP(ehcHandle, hpcHandle, mpService.getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
-    
-      MedikationsPlan mpR = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(dataMPR.value));
+      MedikationsPlan mpR = mpService.readMedicationsPlan(ehcHandle, hpcHandle, "AMTS-PIN");
       
       assertEquals(mpW.getInstanzId(), mpR.getInstanzId());
    }
