@@ -10,11 +10,11 @@ import javax.xml.bind.Marshaller;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.MedikationsPlan;
 
-public class MedikationsplanService {
+public class MedikationsPlanService {
     private JAXBContext mpJaxbContext;
     private ContextType context;
 
-    public MedikationsplanService(ContextType context) {
+    public MedikationsPlanService(ContextType context) {
         this.context = context;
         try {
             mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);

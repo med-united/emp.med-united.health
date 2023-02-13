@@ -32,10 +32,6 @@ import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
-import de.gematik.ws.conn.eventservice.v7.GetCards;
-import de.gematik.ws.conn.eventservice.v7.GetCardsResponse;
-import de.gematik.ws.conn.eventservice.wsdl.v7.EventService;
-import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.Einwilligung;
 import health.medunited.emp.bmp.MedikationsPlan;
@@ -49,7 +45,8 @@ if it does not listen, start with:
 */
 
 public class MedikationsplanServiceTest {
-   MedikationsplanService mpService;
+   MedikationsPlanService mpService;
+   EventServicePort eventServicePort;
 
    @BeforeEach
    void init() {
@@ -57,7 +54,8 @@ public class MedikationsplanServiceTest {
       contextType.setMandantId("Mandant1");
       contextType.setWorkplaceId("Workplace1");
       contextType.setClientSystemId("ClientID1");
-      mpService = new MedikationsplanService(contextType);
+      mpService = new MedikationsPlanService(contextType);
+      eventServicePort = new EventServicePort("http://localhost/eventservice", contextType);
 
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
@@ -71,8 +69,6 @@ public class MedikationsplanServiceTest {
          FileNotFoundException, KeyStoreException, IOException, KeyManagementException,
          de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, FaultMessage, DatatypeConfigurationException {
      
-      MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
-
       // CardServicePortType cardService = new CardService(getClass()
       //   .getResource("/CardService.wsdl"))
       //   .getCardServicePort();
@@ -83,25 +79,14 @@ public class MedikationsplanServiceTest {
 
       // configureBindingProvider(bp);
 
-      EventServicePortType eventService = new EventService(getClass()
-            .getResource("/EventService.wsdl"))
-            .getEventServicePort();
+      String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
+      String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
 
-      BindingProvider bp = (BindingProvider) eventService;
-      bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, 
-         "http://localhost/eventservice");
-
-      configureBindingProvider(bp);
-
-      String hpcHandle = getFirstCardOfType(eventService, CardTypeType.SMC_B);
-      String ehcHandle = getFirstCardOfType(eventService, CardTypeType.EGK);
-
-      AMTSServicePortType aMTSService = new AMTSService(getClass().getResource("/AMTSService.wsdl"))
+      AMTSServicePortType aMTSServicePort = new AMTSService(getClass().getResource("/AMTSService.wsdl"))
             .getAMTSServicePort();
 
-      BindingProvider bp2 = (BindingProvider) aMTSService;
-      bp2.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-         "https://localhost/amtsservice");
+      BindingProvider bp2 = (BindingProvider) aMTSServicePort;
+      bp2.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://localhost/amtsservice");
 
       configureBindingProvider(bp2);
 
@@ -112,7 +97,7 @@ public class MedikationsplanServiceTest {
          Holder<Boolean> egkValidCR = new Holder<>();
          Holder<byte[]> dataCR = new Holder<>();
 
-         aMTSService.readConsent(ehcHandle, hpcHandle, mpService.getContext(), statusCR, dataCR, egkValidCR);
+         aMTSServicePort.readConsent(ehcHandle, hpcHandle, mpService.getContext(), statusCR, dataCR, egkValidCR);
 
          Einwilligung consentFromCard = (Einwilligung) consentJaxbContext
             .createUnmarshaller()
@@ -131,7 +116,6 @@ public class MedikationsplanServiceTest {
          Holder<Boolean> egkValidCW = new Holder<>();
 
          // Write Einwilligung
-
          Einwilligung consent = new Einwilligung();
          consent.setEinwilligungsdatum(
                DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) Calendar.getInstance()));
@@ -148,35 +132,26 @@ public class MedikationsplanServiceTest {
 
          marshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
          marshaller.marshal(consent, dataCW);
-         aMTSService.writeConsent(ehcHandle, hpcHandle, mpService.getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
+         aMTSServicePort.writeConsent(ehcHandle, hpcHandle, mpService.getContext(), dataCW.toByteArray(), statusCW, egkValidCW);
       }
 
-      byte[] dataBytesMPW =  mpService.marshalMedicationPlan(mpW);
+      MedikationsPlan mpW = mpService.unmarshalMedicationPlan(getClass().getResourceAsStream("/Medikationsplan_2.xml"));
+      byte[] dataMPW =  mpService.marshalMedicationPlan(mpW);
 
       Holder<Status> statusW = new Holder<>();
       Holder<Boolean> egkValidW = new Holder<>();
       // Write Medikationplan
-      aMTSService.writeMP(ehcHandle, hpcHandle, mpService.getContext(), dataBytesMPW, "AMTS-PIN", statusW, egkValidW);
+      aMTSServicePort.writeMP(ehcHandle, hpcHandle, mpService.getContext(), dataMPW, "AMTS-PIN", statusW, egkValidW);
 
       Holder<Status> statusMPR = new Holder<>();
       Holder<byte[]> dataMPR = new Holder<>();
       Holder<Boolean> egkValidMPR = new Holder<>();
       Holder<Integer> egkUsageMPR = new Holder<>();
-      aMTSService.readMP(ehcHandle, hpcHandle, mpService.getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
+      aMTSServicePort.readMP(ehcHandle, hpcHandle, mpService.getContext(), "AMTS-PIN", statusMPR, dataMPR, egkValidMPR, egkUsageMPR);
     
       MedikationsPlan mpR = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(dataMPR.value));
       
       assertEquals(mpW.getInstanzId(), mpR.getInstanzId());
-   }
-
-   private String getFirstCardOfType(EventServicePortType eventService, CardTypeType type) throws FaultMessage {
-      GetCards parameter = new GetCards();
-      parameter.setContext(mpService.getContext());
-      parameter.setCardType(type);
-      GetCardsResponse getCardsResponse = eventService.getCards(parameter);
-
-      String ehcHandle = getCardsResponse.getCards().getCard().get(0).getCardHandle();
-      return ehcHandle;
    }
 
    private void configureBindingProvider(BindingProvider bindingProvider)
