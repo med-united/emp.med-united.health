@@ -51,21 +51,6 @@ public class MedikationsPlanService {
         return dataMP.toByteArray();
     }
 
-    public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) {
-        Holder<Status> status = new Holder<>();
-        Holder<byte[]> data = new Holder<>();
-        Holder<Boolean> egkValid = new Holder<>();
-        Holder<Integer> egkUsage = new Holder<>();
-        try {
-            amtsServicePort
-               .readMP(ehcHandle, hpcHandle, this.context, usingPin, status, data, egkValid, egkUsage);
-        } catch (FaultMessage e) {
-            throw new IllegalStateException("Unable to read MedicationsPlan from Card", e);
-        }
-      
-        return unmarshalMedicationPlan(new ByteArrayInputStream(data.value));
-    }
-
     public void writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle, String usingPin) {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
@@ -77,4 +62,27 @@ public class MedikationsPlanService {
         }
     }
 
+    public String readMedicationsPlanAsTextXml(String ehcHandle, String hpcHandle, String usingPin) {
+        byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
+        return new String(empBytes);
+    }
+
+    public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) {  
+        byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
+        return unmarshalMedicationPlan(new ByteArrayInputStream(empBytes));
+    }
+
+    private byte[] readMedicationsPlanAsBytes(String ehcHandle, String hpcHandle, String usingPin){
+        Holder<Status> status = new Holder<>();
+        Holder<byte[]> data = new Holder<>();
+        Holder<Boolean> egkValid = new Holder<>();
+        Holder<Integer> egkUsage = new Holder<>();
+        try {
+            amtsServicePort
+               .readMP(ehcHandle, hpcHandle, this.context, usingPin, status, data, egkValid, egkUsage);
+        } catch (FaultMessage e) {
+            throw new IllegalStateException("Unable to read MedicationsPlan from Card", e);
+        }
+        return data.value;
+    }
 }
