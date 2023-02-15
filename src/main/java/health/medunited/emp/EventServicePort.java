@@ -31,12 +31,17 @@ public class EventServicePort {
         parameter.setContext(this.context);
         parameter.setCardType(cardType);
 
-        return this.eventServicePortType
-                .getCards(parameter)
-                .getCards()
-                .getCard()
-                .get(0)
-                .getCardHandle();
+        try{
+            return this.eventServicePortType
+            .getCards(parameter)
+            .getCards()
+            .getCard()
+            .get(0)
+            .getCardHandle();
+        } catch (IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException(String.format("There is no card of type %s in the reader!", cardType.name()), e);
+        }
+
      }
 
 }
