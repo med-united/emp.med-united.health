@@ -19,4 +19,12 @@ public class ContextTypeProducer {
         contextType.setWorkplaceId(httpServletRequest.getHeader("X-Workplace-Id"));
         return contextType;
     }
+
+    public static ContextType clone(ContextType context){
+        ContextType contextType = new ContextType();
+        contextType.setClientSystemId(context.getClientSystemId());
+        contextType.setMandantId(context.getMandantId());
+        contextType.setWorkplaceId(context.getWorkplaceId());
+        return contextType;
+    }
 }
