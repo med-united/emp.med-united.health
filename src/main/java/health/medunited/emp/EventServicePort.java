@@ -30,7 +30,6 @@ public class EventServicePort {
         GetCards parameter = new GetCards();
         parameter.setContext(this.context);
         parameter.setCardType(cardType);
-
         try{
             return this.eventServicePortType
             .getCards(parameter)
