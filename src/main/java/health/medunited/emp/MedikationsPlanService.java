@@ -7,6 +7,7 @@ import java.io.InputStream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
 import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
@@ -20,69 +21,48 @@ public class MedikationsPlanService {
     private ContextType context;
     private JAXBContext mpJaxbContext;
 
-    public MedikationsPlanService(AMTSServicePortType amtsServicePort, ContextType context) {
+    public MedikationsPlanService(AMTSServicePortType amtsServicePort, ContextType context) throws JAXBException {
         this.amtsServicePort = amtsServicePort;
         this.context = context;
-        try {
-            mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
-        } catch (JAXBException e) {
-            throw new IllegalStateException("Unable to load MedikationsPlan", e);
-        }
+        mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
     }
 
-    public MedikationsPlan unmarshalMedicationPlan(InputStream xmlInputStream) {
-        try {
-            return (MedikationsPlan) mpJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
-        } catch (JAXBException e) {
-            throw new IllegalStateException("Unable to unmarshal XML into MedikationsPlan", e);
-        }
+    public MedikationsPlan unmarshalMedicationPlan(InputStream xmlInputStream) throws JAXBException {
+        return (MedikationsPlan) mpJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
     }
 
-    private byte[] marshalMedicationPlan(MedikationsPlan mp) {
+    private byte[] marshalMedicationPlan(MedikationsPlan mp) throws PropertyException, JAXBException {
         ByteArrayOutputStream dataMP = new ByteArrayOutputStream();
         Marshaller mpMarshaller;
-        try {
-            mpMarshaller = mpJaxbContext.createMarshaller();
-            mpMarshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
-            mpMarshaller.marshal(mp, dataMP);
-        } catch (JAXBException e) {
-            throw new IllegalStateException("Unable to create Marshaller for MedikationsPlan", e);
-        }
+        mpMarshaller = mpJaxbContext.createMarshaller();
+        mpMarshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
+        mpMarshaller.marshal(mp, dataMP);
         return dataMP.toByteArray();
     }
 
-    public void writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle, String usingPin) {
+    public void writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage, PropertyException, JAXBException {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         byte[] data = marshalMedicationPlan(medicationsPlan);
-        try {
-            amtsServicePort.writeMP(ehcHandle, hpcHandle, this.context, data, usingPin, status, egkValid);
-        } catch (FaultMessage e) {
-            throw new IllegalStateException("Unable to write MedicationsPlan to Card", e);
-        }
+        amtsServicePort.writeMP(ehcHandle, hpcHandle, this.context, data, usingPin, status, egkValid);
     }
 
-    public String readMedicationsPlanAsTextXml(String ehcHandle, String hpcHandle, String usingPin) {
+    public String readMedicationsPlanAsTextXml(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage {
         byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
         return new String(empBytes);
     }
 
-    public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) {  
+    public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage, JAXBException {  
         byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
         return unmarshalMedicationPlan(new ByteArrayInputStream(empBytes));
     }
 
-    private byte[] readMedicationsPlanAsBytes(String ehcHandle, String hpcHandle, String usingPin){
+    private byte[] readMedicationsPlanAsBytes(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage{
         Holder<Status> status = new Holder<>();
         Holder<byte[]> data = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         Holder<Integer> egkUsage = new Holder<>();
-        try {
-            amtsServicePort
-               .readMP(ehcHandle, hpcHandle, this.context, usingPin, status, data, egkValid, egkUsage);
-        } catch (FaultMessage e) {
-            throw new IllegalStateException("Unable to read MedicationsPlan from Card", e);
-        }
+        amtsServicePort.readMP(ehcHandle, hpcHandle, this.context, usingPin, status, data, egkValid, egkUsage);
         return data.value;
     }
 }

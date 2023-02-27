@@ -2,50 +2,53 @@ package health.medunited.emp;
 
 import java.io.ByteArrayInputStream;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
+import javax.xml.bind.JAXBException;
 
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
+import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.MedikationsPlan;
-import health.medunited.security.FakeHostnameVerifier;
-import health.medunited.security.FakeX509TrustManager;
 
+@Dependent
 public class CardService {
-    private static String usingPin = "AMTS-PIN";
-    private static String eventEndpoint = "http://localhost/eventservice";
-    private static String amtsEndpoint = "http://localhost/amtsservice";
-    private static TrustManager trustManager = new FakeX509TrustManager();
-    private static HostnameVerifier hostnameVerifier = new FakeHostnameVerifier();
+    private String usingPin = "AMTS-PIN";
+    private String eventEndpoint = "http://localhost/eventservice";
+    private String amtsEndpoint = "http://localhost/amtsservice";
 
-    public static String readEmpFromCard(ContextType contextType) {
+    @Inject
+    ContextType contextType;
+
+    @Inject
+    TrustManager trustManager;
+
+    @Inject
+    HostnameVerifier hostnameVerifier;
+
+    public CardService(){}
+
+    public String readEmpFromCard() throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
         contextType = ContextTypeProducer.clone(contextType);
         EventServicePort eventServicePort = new EventServicePort(eventEndpoint, contextType, trustManager, hostnameVerifier);
         AmtsServicePort amtsServicePort = new AmtsServicePort(amtsEndpoint, trustManager, hostnameVerifier);
         MedikationsPlanService mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
-        try {
-            String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
-            String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
-            return mpService.readMedicationsPlanAsTextXml(ehcHandle, hpcHandle, usingPin);
-        } catch (de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage e) {
-            return "Endpoint: Unable to read MedicationsPlan from Card\n" + e.getMessage();
-        }
+        String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
+        String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
+        return mpService.readMedicationsPlanAsTextXml(ehcHandle, hpcHandle, usingPin);
     }
 
-    public static String writeEmpToCard(ContextType contextType, String medikationsPlanXML) {
+    public void writeEmpToCard(String medikationsPlanXML) throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
         contextType = ContextTypeProducer.clone(contextType);
         EventServicePort eventServicePort = new EventServicePort(eventEndpoint, contextType, trustManager, hostnameVerifier);
         AmtsServicePort amtsServicePort = new AmtsServicePort(amtsEndpoint, trustManager, hostnameVerifier);
         MedikationsPlanService mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
         MedikationsPlan medikationsPlan = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(medikationsPlanXML.getBytes()));
-        try {
-            String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
-            String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
-            mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle, usingPin);
-            return "OK";
-        } catch (de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage e) {
-            return "Endpoint: Unable to write MedicationsPlan from Card";
-        }
+        String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
+        String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
+        mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle, usingPin);
     }
 
 }

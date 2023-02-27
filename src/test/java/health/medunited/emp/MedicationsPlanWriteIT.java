@@ -7,6 +7,7 @@ import java.util.GregorianCalendar;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
+import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
@@ -39,7 +40,7 @@ public class MedicationsPlanWriteIT {
    String usingPin = "AMTS-PIN";
 
    @BeforeEach
-   void init() {
+   void init() throws JAXBException {
       ContextType contextType = new ContextType();
       contextType.setMandantId("Mandant1");
       contextType.setWorkplaceId("Workplace1");
@@ -59,7 +60,7 @@ public class MedicationsPlanWriteIT {
    }
 
    @Test
-   public void test() throws FaultMessage, DatatypeConfigurationException {
+   public void test() throws FaultMessage, DatatypeConfigurationException, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
 
       // CardServicePortType cardService = new CardService(getClass()
       // .getResource("/CardService.wsdl"))

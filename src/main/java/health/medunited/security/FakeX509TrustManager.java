@@ -2,6 +2,7 @@ package health.medunited.security;
 
 import java.security.cert.X509Certificate;
 
+import javax.enterprise.context.Dependent;
 import javax.net.ssl.X509TrustManager;
 
 /**
@@ -10,6 +11,7 @@ import javax.net.ssl.X509TrustManager;
  *
  * @author Francis Labrie
  */
+@Dependent
 public class FakeX509TrustManager implements X509TrustManager {
 
     /**

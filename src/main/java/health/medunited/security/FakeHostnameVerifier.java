@@ -1,5 +1,6 @@
 package health.medunited.security;
 
+import javax.enterprise.context.Dependent;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
@@ -8,6 +9,7 @@ import javax.net.ssl.SSLSession;
  *
  * @author Francis Labrie
  */
+@Dependent
 public class FakeHostnameVerifier implements HostnameVerifier {
 
     /**
