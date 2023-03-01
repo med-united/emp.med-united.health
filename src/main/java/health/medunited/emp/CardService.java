@@ -1,7 +1,5 @@
 package health.medunited.emp;
 
-import java.io.ByteArrayInputStream;
-
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
@@ -30,22 +28,22 @@ public class CardService {
 
     public CardService(){}
 
-    public String readEmpFromCard() throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
+    public MedikationsPlan readEmpFromCard() throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
         contextType = ContextTypeProducer.clone(contextType);
         EventServicePort eventServicePort = new EventServicePort(eventEndpoint, contextType, trustManager, hostnameVerifier);
         AmtsServicePort amtsServicePort = new AmtsServicePort(amtsEndpoint, trustManager, hostnameVerifier);
         MedikationsPlanService mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
         String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
         String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
-        return mpService.readMedicationsPlanAsTextXml(ehcHandle, hpcHandle, usingPin);
+        return mpService.readMedicationsPlan(ehcHandle, hpcHandle, usingPin);
     }
 
-    public void writeEmpToCard(String medikationsPlanXML) throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
+    public void writeEmpToCard(MedikationsPlan medikationsPlan) throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
         contextType = ContextTypeProducer.clone(contextType);
         EventServicePort eventServicePort = new EventServicePort(eventEndpoint, contextType, trustManager, hostnameVerifier);
         AmtsServicePort amtsServicePort = new AmtsServicePort(amtsEndpoint, trustManager, hostnameVerifier);
         MedikationsPlanService mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
-        MedikationsPlan medikationsPlan = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(medikationsPlanXML.getBytes()));
+        // MedikationsPlan medikationsPlan = mpService.unmarshalMedicationPlan(new ByteArrayInputStream(medikationsPlanXML.getBytes()));
         String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
         String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
         mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle, usingPin);

@@ -47,11 +47,6 @@ public class MedikationsPlanService {
         amtsServicePort.writeMP(ehcHandle, hpcHandle, this.context, data, usingPin, status, egkValid);
     }
 
-    public String readMedicationsPlanAsTextXml(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage {
-        byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
-        return new String(empBytes);
-    }
-
     public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage, JAXBException {  
         byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
         return unmarshalMedicationPlan(new ByteArrayInputStream(empBytes));
