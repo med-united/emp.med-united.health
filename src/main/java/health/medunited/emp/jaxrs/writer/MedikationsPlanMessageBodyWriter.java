@@ -33,7 +33,8 @@ public class MedikationsPlanMessageBodyWriter implements MessageBodyWriter<Medik
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.isAssignableFrom(MedikationsPlan.class) && mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE);
+        return type.isAssignableFrom(MedikationsPlan.class) 
+            && (mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE) || mediaType.isCompatible(MediaType.APPLICATION_OCTET_STREAM_TYPE));
     }
 
     @Override
