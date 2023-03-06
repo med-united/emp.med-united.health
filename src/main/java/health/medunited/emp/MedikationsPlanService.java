@@ -19,6 +19,7 @@ import de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.MedikationsPlan;
+import health.medunited.emp.producer.ContextTypeProducer;
 
 @Dependent
 public class MedikationsPlanService {
@@ -58,7 +59,7 @@ public class MedikationsPlanService {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         byte[] data = marshalMedicationPlan(medicationsPlan);
-        amtsServicePort.writeMP(ehcHandle, hpcHandle, this.context, data, usingPin, status, egkValid);
+        amtsServicePort.writeMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), data, usingPin, status, egkValid);
     }
 
     public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage, JAXBException {  
@@ -71,7 +72,7 @@ public class MedikationsPlanService {
         Holder<byte[]> data = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         Holder<Integer> egkUsage = new Holder<>();
-        amtsServicePort.readMP(ehcHandle, hpcHandle, this.context, usingPin, status, data, egkValid, egkUsage);
+        amtsServicePort.readMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), usingPin, status, data, egkValid, egkUsage);
         return data.value;
     }
 }
