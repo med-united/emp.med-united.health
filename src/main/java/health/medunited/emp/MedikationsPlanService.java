@@ -3,7 +3,11 @@ package health.medunited.emp;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -16,15 +20,25 @@ import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.MedikationsPlan;
 
+@Dependent
 public class MedikationsPlanService {
-    private AMTSServicePortType amtsServicePort;
-    private ContextType context;
-    private JAXBContext mpJaxbContext;
+    @Inject
+    AMTSServicePortType amtsServicePort;
+    @Inject
+    ContextType context;
+    private static JAXBContext mpJaxbContext;
 
-    public MedikationsPlanService(AMTSServicePortType amtsServicePort, ContextType context) throws JAXBException {
-        this.amtsServicePort = amtsServicePort;
-        this.context = context;
-        mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
+    private static Logger log = Logger.getLogger(MedikationsPlanService.class.getName());
+
+    static {
+        try {
+            mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
+        } catch (JAXBException e) {
+            log.log(Level.SEVERE, "Could not ini JAXBContext", e);
+        }
+    }
+
+    public MedikationsPlanService() {
     }
 
     public MedikationsPlan unmarshalMedicationPlan(InputStream xmlInputStream) throws JAXBException {

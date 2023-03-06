@@ -11,17 +11,19 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
+import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
+import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.Einwilligung;
 import health.medunited.emp.bmp.MedikationsPlan;
+import health.medunited.emp.producer.ContextTypeProducer;
+import health.medunited.emp.producer.EventServicePortProducer;
 
 @Dependent
 public class CardService {
     private String usingPin = "AMTS-PIN";
-    private String eventEndpoint = "http://localhost/eventservice";
-    private String amtsEndpoint = "http://localhost/amtsservice";
 
     @Inject
     ContextType contextType;
@@ -32,17 +34,26 @@ public class CardService {
     @Inject
     HostnameVerifier hostnameVerifier;
 
+    @Inject
+    AMTSServicePortType amtsServicePortType;
+    
+    @Inject
+    EventServicePortType eventServicePortType;
+
+    @Inject
+    MedikationsPlanService mpService;
+
+    @Inject
+    ConsentService consentService;
+
     public CardService() {
     }
 
     public MedikationsPlan readEmpFromCard()
             throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
         contextType = ContextTypeProducer.clone(contextType);
-        EventServicePort eventServicePort = new EventServicePort(eventEndpoint, contextType, trustManager, hostnameVerifier);
-        AmtsServicePort amtsServicePort = new AmtsServicePort(amtsEndpoint, trustManager, hostnameVerifier);
-        MedikationsPlanService mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
-        String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
-        String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
+        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.EGK);
+        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.SMC_B);
         return mpService.readMedicationsPlan(ehcHandle, hpcHandle, usingPin);
     }
 
@@ -50,13 +61,9 @@ public class CardService {
             throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, DatatypeConfigurationException {
         contextType = ContextTypeProducer.clone(contextType);
 
-        EventServicePort eventServicePort = new EventServicePort(eventEndpoint, contextType, trustManager, hostnameVerifier);
-        String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
-        String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
+        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.EGK);
+        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.SMC_B);
 
-        AmtsServicePort amtsServicePort = new AmtsServicePort(amtsEndpoint, trustManager, hostnameVerifier);
-
-        ConsentService consentService = new ConsentService(amtsServicePort.getPort(), contextType);
         try {
             Einwilligung consentR = consentService.readConsent(ehcHandle, hpcHandle);
         } catch (Exception ex) {
@@ -65,7 +72,6 @@ public class CardService {
             consentService.writeConsent(consentW, ehcHandle, hpcHandle);
         }
 
-        MedikationsPlanService mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
         mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle, usingPin);
     }
 

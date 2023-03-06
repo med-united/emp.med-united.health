@@ -5,8 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.TrustManager;
+import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -14,13 +13,14 @@ import javax.xml.datatype.DatatypeFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
+import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.Einwilligung;
 import health.medunited.emp.bmp.MedikationsPlan;
-import health.medunited.security.FakeHostnameVerifier;
-import health.medunited.security.FakeX509TrustManager;
+import health.medunited.emp.producer.EventServicePortProducer;
 /*
 for testing, start KoPS (Konnektorsimulator für Primärsysteme bei eHealth Experts GmbH) with 
    ./start.sh localhost 8081
@@ -33,25 +33,25 @@ import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 public class MedicationsPlanWriteIT {
+   @Inject
    MedikationsPlanService mpService;
+   @Inject
    ConsentService consentService;
-   EventServicePort eventServicePort;
-   AmtsServicePort amtsServicePort;
+   @Inject
+   EventServicePortType eventServicePortType;
+   @Inject
+   AMTSServicePortType amtsServicePortType;
    String usingPin = "AMTS-PIN";
+
+   ContextType contextType;
 
    @BeforeEach
    void init() throws JAXBException {
-      ContextType contextType = new ContextType();
+      contextType = new ContextType();
       contextType.setMandantId("Mandant1");
       contextType.setWorkplaceId("Workplace1");
       contextType.setClientSystemId("ClientID1");
-      TrustManager trustManager = new FakeX509TrustManager();
-      HostnameVerifier hostnameVerifier = new FakeHostnameVerifier();
-      eventServicePort = new EventServicePort("http://localhost/eventservice", contextType, trustManager, hostnameVerifier);
-      amtsServicePort = new AmtsServicePort("http://localhost/amtsservice", trustManager, hostnameVerifier);
-      consentService = new ConsentService(amtsServicePort.getPort(), contextType);
-      mpService = new MedikationsPlanService(amtsServicePort.getPort(), contextType);
-
+      
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
@@ -72,8 +72,8 @@ public class MedicationsPlanWriteIT {
 
       // configureBindingProvider(bp);
 
-      String ehcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.EGK);
-      String hpcHandle = eventServicePort.getFirstCardHandleOfType(CardTypeType.SMC_B);
+      String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.EGK);
+      String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.SMC_B);
 
       try {
          Einwilligung consentR = consentService.readConsent(ehcHandle, hpcHandle);

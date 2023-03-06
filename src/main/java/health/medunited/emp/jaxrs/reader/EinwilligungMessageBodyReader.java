@@ -15,16 +15,16 @@ import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import health.medunited.emp.bmp.MedikationsPlan;
+import health.medunited.emp.bmp.Einwilligung;
 
 @Provider
-public class MedikationsPlanMessageBodyReader implements MessageBodyReader<MedikationsPlan> {
-    private static Logger log = Logger.getLogger(MedikationsPlanMessageBodyReader.class.getName());
+public class EinwilligungMessageBodyReader implements MessageBodyReader<Einwilligung> {
+    private static Logger log = Logger.getLogger(EinwilligungMessageBodyReader.class.getName());
     static JAXBContext mpJaxbContext;
 
     static {
         try {
-            mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
+            mpJaxbContext = JAXBContext.newInstance(Einwilligung.class);
         } catch (JAXBException e) {
             log.log(Level.SEVERE, "Could not init JAXBContext", e);
         }
@@ -32,11 +32,11 @@ public class MedikationsPlanMessageBodyReader implements MessageBodyReader<Medik
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.isAssignableFrom(MedikationsPlan.class) && mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE);
+        return type.isAssignableFrom(Einwilligung.class) && mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE);
     }
 
     @Override
-    public MedikationsPlan readFrom(Class<MedikationsPlan> type, Type genericType, Annotation[] annotations,
+    public Einwilligung readFrom(Class<Einwilligung> type, Type genericType, Annotation[] annotations,
             MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
             throws IOException, WebApplicationException {
         try {
@@ -46,8 +46,8 @@ public class MedikationsPlanMessageBodyReader implements MessageBodyReader<Medik
         }
     }
 
-    public MedikationsPlan unmarshalMedicationPlan(InputStream xmlInputStream) throws JAXBException {
-        return (MedikationsPlan) mpJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
+    public Einwilligung unmarshalMedicationPlan(InputStream xmlInputStream) throws JAXBException {
+        return (Einwilligung) mpJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
     }
 
 }

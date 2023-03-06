@@ -1,5 +1,7 @@
-package health.medunited.emp;
+package health.medunited.emp.producer;
 
+import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 import javax.xml.ws.BindingProvider;
@@ -12,26 +14,31 @@ import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.security.BindingProviderConfigurer;
 
-public class EventServicePort {
-    private EventServicePortType eventServicePortType;
-    private ContextType context;
-
-    public EventServicePort(String endpoint, ContextType context, TrustManager trustManager, HostnameVerifier hostnameVerifier) {
-        this.context = context;
-        eventServicePortType = new EventService(getClass()
+public class EventServicePortProducer {
+    
+    @Inject
+    TrustManager trustManager;
+    @Inject
+    HostnameVerifier hostnameVerifier;
+    
+    @Produces
+    public EventServicePortType produce() {
+        String endpoint = "http://localhost/eventservice"; 
+        EventServicePortType eventServicePortType = new EventService(getClass()
                 .getResource("/EventService.wsdl"))
                 .getEventServicePort();
         BindingProvider bp = (BindingProvider) eventServicePortType;
         bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         BindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
+        return eventServicePortType;
     }
 
-    public String getFirstCardHandleOfType(CardTypeType cardType) throws FaultMessage {
+    public static  String getFirstCardHandleOfType(ContextType contextType, EventServicePortType eventServicePortType, CardTypeType cardType) throws FaultMessage {
         GetCards parameter = new GetCards();
-        parameter.setContext(this.context);
+        parameter.setContext(contextType);
         parameter.setCardType(cardType);
         try{
-            return this.eventServicePortType
+            return eventServicePortType
             .getCards(parameter)
             .getCards()
             .getCard()

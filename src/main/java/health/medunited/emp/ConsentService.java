@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -15,19 +17,24 @@ import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.Einwilligung;
 
+@Dependent
 public class ConsentService {
-    private AMTSServicePortType amtsServicePort;
-    private ContextType context;
-    private JAXBContext consentJaxbContext;
+    @Inject
+    AMTSServicePortType amtsServicePort;
+    @Inject
+    ContextType context;
+    private static JAXBContext consentJaxbContext;
 
-    public ConsentService(AMTSServicePortType amtsServicePort, ContextType context) {
-        this.amtsServicePort = amtsServicePort;
-        this.context = context;
+    static {
         try {
             consentJaxbContext = JAXBContext.newInstance(Einwilligung.class);
         } catch (JAXBException e) {
             throw new IllegalStateException("Unable to load Consent", e);
         }
+    }
+
+    public ConsentService() {
+
     }
 
     public Einwilligung unmarshalConsent(InputStream xmlInputStream) {

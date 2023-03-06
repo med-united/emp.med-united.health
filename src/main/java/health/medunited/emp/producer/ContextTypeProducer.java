@@ -1,4 +1,4 @@
-package health.medunited.emp;
+package health.medunited.emp.producer;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
