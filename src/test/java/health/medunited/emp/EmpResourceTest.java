@@ -14,12 +14,12 @@ import io.restassured.http.ContentType;
 public class EmpResourceTest {
 
     @Test
-    public void testHelloEndpoint_success() {
+    public void testEmpEndpoint_success() {
          given()
            .when()
-             .header("X-Mandant-Id", "Mandant1")
-             .header("X-Client-System-Id", "ClientID1")
-             .header("X-Workplace-Id", "Workplace1")
+             .header("x-mandant-id", "Mandant1")
+             .header("x-client-system-id", "ClientID1")
+             .header("x-workplace-id", "Workplace1")
              .accept(ContentType.XML)
              .get("/emp")
            .then()
@@ -27,12 +27,12 @@ public class EmpResourceTest {
     }
 
     @Test
-    public void testHelloEndpoint_wrongMandantId() {
+    public void testEmpEndpoint_wrongMandantId() {
          given()
            .when()
-             .header("X-Mandant-Id", "MandantX")
-             .header("X-Client-System-Id", "ClientID1")
-             .header("X-Workplace-Id", "Workplace1")
+           .header("x-mandant-id", "WRONG_ID")
+           .header("x-client-system-id", "ClientID1")
+           .header("x-workplace-id", "Workplace1")
              .get("/emp")
            .then()
               .statusCode(500);

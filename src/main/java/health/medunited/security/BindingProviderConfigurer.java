@@ -35,7 +35,7 @@ public class BindingProviderConfigurer {
         SSLContext sslContext;
         try {
             if(keystore == null) {
-                sslContext = SSLContext.getInstance("TLS");
+                sslContext = SSLContext.getInstance(SslContextType.TLS.getSslContextType());
             } else {
                 sslContext = setUpSSLContext(getKeyFromKeyStoreUri(keystore, keystorePassword));
             }

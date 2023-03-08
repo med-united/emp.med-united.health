@@ -33,7 +33,7 @@ public class EventServicePortProducer {
         return eventServicePortType;
     }
 
-    public static  String getFirstCardHandleOfType(ContextType contextType, EventServicePortType eventServicePortType, CardTypeType cardType) throws FaultMessage {
+    public static String getFirstCardHandleOfType(ContextType contextType, EventServicePortType eventServicePortType, CardTypeType cardType) throws FaultMessage {
         GetCards parameter = new GetCards();
         parameter.setContext(contextType);
         parameter.setCardType(cardType);

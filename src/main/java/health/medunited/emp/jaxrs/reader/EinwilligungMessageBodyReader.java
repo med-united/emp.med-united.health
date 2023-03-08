@@ -40,13 +40,13 @@ public class EinwilligungMessageBodyReader implements MessageBodyReader<Einwilli
             MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
             throws IOException, WebApplicationException {
         try {
-            return unmarshalMedicationPlan(entityStream);
+            return unmarshalEinwilligung(entityStream);
         } catch (JAXBException e) {
             throw new WebApplicationException(e);
         }
     }
 
-    public Einwilligung unmarshalMedicationPlan(InputStream xmlInputStream) throws JAXBException {
+    public Einwilligung unmarshalEinwilligung(InputStream xmlInputStream) throws JAXBException {
         return (Einwilligung) mpJaxbContext.createUnmarshaller().unmarshal(xmlInputStream);
     }
 

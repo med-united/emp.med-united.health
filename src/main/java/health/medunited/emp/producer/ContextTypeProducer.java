@@ -14,9 +14,10 @@ public class ContextTypeProducer {
     @RequestScoped
     public ContextType produce() {
         ContextType contextType = new ContextType();
-        contextType.setMandantId(httpServletRequest.getHeader("X-Mandant-Id"));
-        contextType.setClientSystemId(httpServletRequest.getHeader("X-Client-System-Id"));
-        contextType.setWorkplaceId(httpServletRequest.getHeader("X-Workplace-Id"));
+        contextType.setMandantId(httpServletRequest.getHeader("x-mandant-id"));
+        contextType.setClientSystemId(httpServletRequest.getHeader("x-client-system-id"));
+        contextType.setWorkplaceId(httpServletRequest.getHeader("x-workplace-id"));
+        contextType.setUserId(httpServletRequest.getHeader("x-user-id"));
         return contextType;
     }
 
@@ -25,6 +26,7 @@ public class ContextTypeProducer {
         contextType.setClientSystemId(context.getClientSystemId());
         contextType.setMandantId(context.getMandantId());
         contextType.setWorkplaceId(context.getWorkplaceId());
+        contextType.setUserId(context.getUserId());
         return contextType;
     }
 }
