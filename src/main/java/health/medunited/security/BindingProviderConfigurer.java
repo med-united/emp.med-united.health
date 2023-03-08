@@ -36,6 +36,7 @@ public class BindingProviderConfigurer {
         try {
             if(keystore == null) {
                 sslContext = SSLContext.getInstance(SslContextType.TLS.getSslContextType());
+                sslContext.init(null, new TrustManager[] { trustManager }, null);
             } else {
                 sslContext = setUpSSLContext(getKeyFromKeyStoreUri(keystore, keystorePassword));
             }
@@ -46,11 +47,6 @@ public class BindingProviderConfigurer {
         }
 
         if (sslContext != null) {
-            try {
-                sslContext.init(null, new TrustManager[] { trustManager }, null);
-            } catch (KeyManagementException e) {
-                throw new IllegalStateException("Unable to configure TrustManager", e);
-            }
             bindingProvider.getRequestContext()
                     .put("com.sun.xml.ws.transport.https.client.SSLSocketFactory",
                             sslContext.getSocketFactory());

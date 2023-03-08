@@ -23,7 +23,7 @@ public class EventServicePortProducer {
     
     @Produces
     public EventServicePortType produce() {
-        String endpoint = "http://localhost/eventservice"; 
+        String endpoint = "http://localhost/eventservice"; //"https://172.18.70.242:443/ws/EventService"
         EventServicePortType eventServicePortType = new EventService(getClass()
                 .getResource("/EventService.wsdl"))
                 .getEventServicePort();

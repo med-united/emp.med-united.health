@@ -40,6 +40,18 @@
 	<message name="UnblockPinResponseMessage">
 		<part name="parameter" element="CARD:UnblockPinResponse"/>
 	</message>
+	<message name="EnablePinRequestMessage">
+		<part name="parameter" element="CARD:EnablePin"/>
+	</message>
+	<message name="EnablePinResponseMessage">
+		<part name="parameter" element="CARD:EnablePinResponse"/>
+	</message>
+	<message name="DisablePinRequestMessage">
+		<part name="parameter" element="CARD:DisablePin"/>
+	</message>
+	<message name="DisablePinResponseMessage">
+		<part name="parameter" element="CARD:DisablePinResponse"/>
+	</message>
 	<message name="GetPinStatusRequestMessage">
 		<part name="parameter" element="CARD:GetPinStatus"/>
 	</message>
@@ -69,6 +81,16 @@
 		<operation name="UnblockPin">
 			<input message="CARDW:UnblockPinRequestMessage"/>
 			<output message="CARDW:UnblockPinResponseMessage"/>
+			<fault name="FaultMessage" message="CARDW:FaultMessage"/>
+		</operation>
+		<operation name="EnablePin">
+			<input message="CARDW:EnablePinRequestMessage"/>
+			<output message="CARDW:EnablePinResponseMessage"/>
+			<fault name="FaultMessage" message="CARDW:FaultMessage"/>
+		</operation>
+		<operation name="DisablePin">
+			<input message="CARDW:DisablePinRequestMessage"/>
+			<output message="CARDW:DisablePinResponseMessage"/>
 			<fault name="FaultMessage" message="CARDW:FaultMessage"/>
 		</operation>
 		<operation name="GetPinStatus">
@@ -122,6 +144,30 @@
 		</operation>
 		<operation name="GetPinStatus">
 			<soap:operation soapAction="http://ws.gematik.de/conn/CardService/v8.1#GetPinStatus"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="FaultMessage">
+				<soap:fault name="FaultMessage" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="EnablePin">
+			<soap:operation soapAction="http://ws.gematik.de/conn/CardService/v8.1#EnablePin"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="FaultMessage">
+				<soap:fault name="FaultMessage" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="DisablePin">
+			<soap:operation soapAction="http://ws.gematik.de/conn/CardService/v8.1#DisablePin"/>
 			<input>
 				<soap:body use="literal"/>
 			</input>

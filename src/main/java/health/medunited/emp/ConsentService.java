@@ -16,6 +16,7 @@ import de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.Einwilligung;
+import health.medunited.emp.producer.ContextTypeProducer;
 
 @Dependent
 public class ConsentService {
@@ -64,7 +65,7 @@ public class ConsentService {
         Holder<byte[]> data = new Holder<>();
 
         try {
-            amtsServicePort.readConsent(ehcHandle, hpcHandle, this.context, status, data, egkValid);
+            amtsServicePort.readConsent(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), status, data, egkValid);
         } catch (de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage e) {
             throw new IllegalStateException("Unable to read Consent from Card", e);
         }
@@ -77,7 +78,7 @@ public class ConsentService {
         Holder<Boolean> egkValid = new Holder<>();
         byte[] data = marshalConsent(consent);
         try {
-            amtsServicePort.writeConsent(ehcHandle, hpcHandle, this.context, data, status, egkValid);
+            amtsServicePort.writeConsent(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), data, status, egkValid);
         } catch (FaultMessage e) {
             throw new IllegalStateException("Unable to write Consent to Card", e);
         }

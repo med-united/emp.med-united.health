@@ -6,11 +6,11 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 import javax.xml.ws.BindingProvider;
 
-import de.gematik.ws.conn.amts.amtsservice.v1.AMTSService;
-import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
+import de.gematik.ws.conn.cardservice.wsdl.v8.CardService;
+import de.gematik.ws.conn.cardservice.wsdl.v8.CardServicePortType;
 import health.medunited.security.BindingProviderConfigurer;
 
-public class AmtsServicePortProducer {
+public class CardServicePortProducer {
 
     @Inject
     TrustManager trustManager;
@@ -19,19 +19,18 @@ public class AmtsServicePortProducer {
     HostnameVerifier hostnameVerifier;
 
     @Produces
-    public AMTSServicePortType produce() {
+    public CardServicePortType produce() {
 
         // TODO: Do service discovery
-        String endpoint = "http://localhost/amtsservice"; //"https://172.18.70.242:443/ws/AMTSService";
+        String endpoint = "http://localhost/cardservice"; //"https://172.18.70.242:443/ws/CardService";
         
-
-        AMTSServicePortType amtsServicePortType = new AMTSService(getClass()
-                .getResource("/AMTSService.wsdl"))
-                .getAMTSServicePort();
-        BindingProvider bp = (BindingProvider) amtsServicePortType;
+        CardServicePortType cardServicePortType = new CardService(getClass()
+                .getResource("/CardService.wsdl"))
+                .getCardServicePort();
+        BindingProvider bp = (BindingProvider) cardServicePortType;
         bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         BindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
-        return amtsServicePortType;
+        return cardServicePortType;
     }
 
 

@@ -51,6 +51,9 @@ public class MedicationsPlanWriteIT {
       contextType.setMandantId("Mandant1");
       contextType.setWorkplaceId("Workplace1");
       contextType.setClientSystemId("ClientID1");
+      // contextType.setMandantId("CC-stat");
+      // contextType.setWorkplaceId("IT-Abteilung");
+      // contextType.setClientSystemId("ClinicCentre");
       
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
