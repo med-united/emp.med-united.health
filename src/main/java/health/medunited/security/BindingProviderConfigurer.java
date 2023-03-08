@@ -26,19 +26,23 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.xml.ws.BindingProvider;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 public class BindingProviderConfigurer {
 
-    static String keystore = null;
-    static String keystorePassword = null;
+    @ConfigProperty(name = "app.keystoreFile")
+    static String keystoreFile;
+    @ConfigProperty(name = "app.keystorePassword")
+    static String keystorePassword;
 
     public static void configure(BindingProvider bindingProvider, TrustManager trustManager, HostnameVerifier hostnameVerifier) {
         SSLContext sslContext;
         try {
-            if(keystore == null) {
+            if(keystoreFile == null) {
                 sslContext = SSLContext.getInstance(SslContextType.TLS.getSslContextType());
                 sslContext.init(null, new TrustManager[] { trustManager }, null);
             } else {
-                sslContext = setUpSSLContext(getKeyFromKeyStoreUri(keystore, keystorePassword));
+                sslContext = setUpSSLContext(getKeyFromKeyStoreUri(keystoreFile, keystorePassword));
             }
             
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | URISyntaxException | IOException

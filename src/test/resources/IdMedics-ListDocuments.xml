@@ -1,0 +1,62 @@
+<idws:callResponse xmlns:idws="http://www.id-berlin.de/idlogikws_ex" totalTimeMillis="78" idlogikTimeMillis="78">
+<idws:RESULT>
+<idws:RETURN_CODE Value="0"/>
+<idws:STATUS Value="0"/>
+<idws:RESULT_ITEMS>
+    <idws:RESULTITEM Name="META" Value="4">
+      <idws:ATTRIBUTE Name="COUNT" Value="4"/>
+      <idws:ATTRIBUTE Name="END_ROW" Value="4"/>
+      <idws:ATTRIBUTE Name="START_ROW" Value="0"/>
+      <idws:ATTRIBUTE Name="TOTAL_ROW_COUNT" Value="4"/>
+        <idws:RESULTITEM Name="DOCUMENT" Value="94794|Medikationsplan">
+        <idws:ATTRIBUTE Name="CASE_ID" Value="10199096"/>
+        <idws:ATTRIBUTE Name="CHARSET" Value=""/>
+        <idws:ATTRIBUTE Name="CREATED_BY" Value="aowz"/>
+        <idws:ATTRIBUTE Name="CREATION_DATE" Value="202303061104"/>
+        <idws:ATTRIBUTE Name="EXTERNAL_CASE_ID" Value=""/>
+        <idws:ATTRIBUTE Name="ID" Value="94794"/>
+        <idws:ATTRIBUTE Name="META_INFO" Value=""/>
+        <idws:ATTRIBUTE Name="MIMETYPE" Value="application/pdf"/>
+        <idws:ATTRIBUTE Name="NAME" Value="Medikationsplan"/>
+        <idws:ATTRIBUTE Name="TYPE" Value="MEDICATION_PLAN"/>
+        </idws:RESULTITEM>
+        <idws:RESULTITEM Name="DOCUMENT" Value="94795|Medikationsplan Barcode">
+        <idws:ATTRIBUTE Name="CASE_ID" Value="10199096"/>
+        <idws:ATTRIBUTE Name="CHARSET" Value="UTF-8"/>
+        <idws:ATTRIBUTE Name="CREATED_BY" Value="aowz"/>
+        <idws:ATTRIBUTE Name="CREATION_DATE" Value="202303061104"/>
+        <idws:ATTRIBUTE Name="EXTERNAL_CASE_ID" Value=""/>
+        <idws:ATTRIBUTE Name="ID" Value="94795"/>
+        <idws:ATTRIBUTE Name="META_INFO" Value=""/>
+        <idws:ATTRIBUTE Name="MIMETYPE" Value="application/xml"/>
+        <idws:ATTRIBUTE Name="NAME" Value="Medikationsplan Barcode"/>
+        <idws:ATTRIBUTE Name="TYPE" Value="MEDICATION_PLAN_BARCODE"/>
+        </idws:RESULTITEM>
+        <idws:RESULTITEM Name="DOCUMENT" Value="94796|Medikationsplan">
+        <idws:ATTRIBUTE Name="CASE_ID" Value="10199096"/>
+        <idws:ATTRIBUTE Name="CHARSET" Value=""/>
+        <idws:ATTRIBUTE Name="CREATED_BY" Value="aowz"/>
+        <idws:ATTRIBUTE Name="CREATION_DATE" Value="202303061105"/>
+        <idws:ATTRIBUTE Name="EXTERNAL_CASE_ID" Value=""/>
+        <idws:ATTRIBUTE Name="ID" Value="94796"/>
+        <idws:ATTRIBUTE Name="META_INFO" Value=""/>
+        <idws:ATTRIBUTE Name="MIMETYPE" Value="application/pdf"/>
+        <idws:ATTRIBUTE Name="NAME" Value="Medikationsplan"/>
+        <idws:ATTRIBUTE Name="TYPE" Value="MEDICATION_PLAN"/>
+        </idws:RESULTITEM>
+        <idws:RESULTITEM Name="DOCUMENT" Value="94797|Medikationsplan Barcode">
+        <idws:ATTRIBUTE Name="CASE_ID" Value="10199096"/>
+        <idws:ATTRIBUTE Name="CHARSET" Value="UTF-8"/>
+        <idws:ATTRIBUTE Name="CREATED_BY" Value="aowz"/>
+        <idws:ATTRIBUTE Name="CREATION_DATE" Value="202303061105"/>
+        <idws:ATTRIBUTE Name="EXTERNAL_CASE_ID" Value=""/>
+        <idws:ATTRIBUTE Name="ID" Value="94797"/>
+        <idws:ATTRIBUTE Name="META_INFO" Value=""/>
+        <idws:ATTRIBUTE Name="MIMETYPE" Value="application/xml"/>
+        <idws:ATTRIBUTE Name="NAME" Value="Medikationsplan Barcode"/>
+        <idws:ATTRIBUTE Name="TYPE" Value="MEDICATION_PLAN_BARCODE"/>
+        </idws:RESULTITEM>
+    </idws:RESULTITEM>
+</idws:RESULT_ITEMS>
+</idws:RESULT>
+</idws:callResponse>

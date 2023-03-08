@@ -2,6 +2,7 @@
 *.class
 /target/**
 *.lst
+*.p12
 
 # Log file
 *.log
