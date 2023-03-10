@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -18,7 +18,7 @@ import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.Einwilligung;
 import health.medunited.emp.producer.ContextTypeProducer;
 
-@Dependent
+@RequestScoped
 public class ConsentService {
     @Inject
     AMTSServicePortType amtsServicePort;

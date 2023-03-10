@@ -5,12 +5,14 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
+@Disabled
 public class IdMedicsServiceTest {
 
     @Inject

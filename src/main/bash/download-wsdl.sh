@@ -1,6 +1,7 @@
 #!/bin/bash
 wget https://raw.githubusercontent.com/gematik/api-telematik/OPB4/tel/error/TelematikError.xsd
 mkdir -p tel/error
+mv TelematikError.xsd tel/error
 wget https://raw.githubusercontent.com/gematik/api-telematik/OPB4/tel/version/ProductInformation.xsd
 mkdir -p tel/version
 mv ProductInformation.xsd tel/version
