@@ -177,6 +177,26 @@
 		</complexType>
 	</element>
 	<element name="UnblockPinResponse" type="CARDCMN:PinResponseType"/>
+	<element name="EnablePin">
+		<complexType>
+			<sequence>
+				<element ref="CCTX:Context"/>
+				<element ref="CONN:CardHandle"/>
+				<element ref="CARDCMN:PinTyp"/>
+			</sequence>
+		</complexType>
+	</element>
+	<element name="EnablePinResponse" type="CARDCMN:PinResponseType"/>
+	<element name="DisablePin">
+		<complexType>
+			<sequence>
+				<element ref="CCTX:Context"/>
+				<element ref="CONN:CardHandle"/>
+				<element ref="CARDCMN:PinTyp"/>
+			</sequence>
+		</complexType>
+	</element>
+	<element name="DisablePinResponse" type="CARDCMN:PinResponseType"/>
 	<element name="AuthorizeSmc">
 		<complexType>
 			<sequence>
