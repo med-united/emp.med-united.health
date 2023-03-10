@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
@@ -26,7 +26,7 @@ import health.medunited.emp.bmp.MedikationsPlan;
 import health.medunited.emp.producer.ContextTypeProducer;
 import health.medunited.emp.producer.EventServicePortProducer;
 
-@Dependent
+@RequestScoped
 public class CardService {
     private String usingPin = "AMTS-PIN";
 

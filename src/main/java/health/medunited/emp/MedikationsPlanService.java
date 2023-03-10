@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -21,7 +21,7 @@ import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.MedikationsPlan;
 import health.medunited.emp.producer.ContextTypeProducer;
 
-@Dependent
+@RequestScoped
 public class MedikationsPlanService {
     @Inject
     AMTSServicePortType amtsServicePort;

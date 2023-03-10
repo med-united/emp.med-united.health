@@ -93,7 +93,7 @@ public class BindingProviderConfigurer {
                 }
             }
         } else if (scheme.equalsIgnoreCase("file")) {
-            String keystoreFile = uriParser.getPath();
+            String keystoreFile = uriParser.getSchemeSpecificPart();
             String query = uriParser.getRawQuery();
             try {
                 String[] queryParts = query.split("=");

@@ -8,6 +8,7 @@ public interface TerminalService {
     String cardService();
     String mandantId();
     String clientSystemId();
+    String userId();
     String workplaceId();
     String keystoreFile();
     String keystorePassword();
