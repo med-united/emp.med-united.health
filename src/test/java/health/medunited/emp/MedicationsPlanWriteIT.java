@@ -23,11 +23,11 @@ import health.medunited.emp.bmp.MedikationsPlan;
 import health.medunited.emp.producer.EventServicePortProducer;
 /*
 for testing, start KoPS (Konnektorsimulator für Primärsysteme bei eHealth Experts GmbH) with 
-   ./start.sh localhost 8081
+   ./start.sh localhost 8090
 check if it listens on port 80:
    netstat -an | grep 80
 if it does not listen, start with:
-   sudo ./start.sh localhost 8081
+   sudo ./start.sh localhost 8090
 */
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -42,19 +42,18 @@ public class MedicationsPlanWriteIT {
    @Inject
    AMTSServicePortType amtsServicePortType;
    String usingPin = "AMTS-PIN";
+   @Inject
+   TerminalService terminalService;
 
    ContextType contextType;
 
    @BeforeEach
    void init() throws JAXBException {
       contextType = new ContextType();
-      contextType.setMandantId("Mandant1");
-      contextType.setWorkplaceId("Workplace1");
-      contextType.setClientSystemId("ClientID1");
-      // contextType.setMandantId("CC-stat");
-      // contextType.setWorkplaceId("IT-Abteilung");
-      // contextType.setClientSystemId("ClinicCentre");
-      
+      contextType.setMandantId(terminalService.mandantId());
+      contextType.setWorkplaceId(terminalService.workplaceId());
+      contextType.setClientSystemId(terminalService.clientSystemId());
+
       System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
       System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
@@ -64,16 +63,6 @@ public class MedicationsPlanWriteIT {
 
    @Test
    public void test() throws FaultMessage, DatatypeConfigurationException, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
-
-      // CardServicePortType cardService = new CardService(getClass()
-      // .getResource("/CardService.wsdl"))
-      // .getCardServicePort();
-
-      // BindingProvider bp = (BindingProvider) cardService;
-      // bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-      // "https://10.0.0.98:443/ws/CardService");
-
-      // configureBindingProvider(bp);
 
       String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.EGK);
       String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType(contextType, eventServicePortType, CardTypeType.SMC_B);

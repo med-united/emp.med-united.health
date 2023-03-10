@@ -18,6 +18,8 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.regex.PatternSyntaxException;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -26,23 +28,21 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.xml.ws.BindingProvider;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import health.medunited.emp.TerminalService;
 
+@Dependent
 public class BindingProviderConfigurer {
+    @Inject
+    TerminalService terminalService;
 
-    @ConfigProperty(name = "app.keystoreFile")
-    static String keystoreFile;
-    @ConfigProperty(name = "app.keystorePassword")
-    static String keystorePassword;
-
-    public static void configure(BindingProvider bindingProvider, TrustManager trustManager, HostnameVerifier hostnameVerifier) {
+    public void configure(BindingProvider bindingProvider, TrustManager trustManager, HostnameVerifier hostnameVerifier) {
         SSLContext sslContext;
         try {
-            if(keystoreFile == null) {
+            if(terminalService.keystoreFile() == null) {
                 sslContext = SSLContext.getInstance(SslContextType.TLS.getSslContextType());
                 sslContext.init(null, new TrustManager[] { trustManager }, null);
             } else {
-                sslContext = setUpSSLContext(getKeyFromKeyStoreUri(keystoreFile, keystorePassword));
+                sslContext = setUpSSLContext(getKeyFromKeyStoreUri(terminalService.keystoreFile(), terminalService.keystorePassword()));
             }
             
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | URISyntaxException | IOException
@@ -59,7 +59,7 @@ public class BindingProviderConfigurer {
                 .put("com.sun.xml.ws.transport.https.client.hostname.verifier", hostnameVerifier);
     }
 
-    public static SSLContext setUpSSLContext(KeyManager km)
+    public SSLContext setUpSSLContext(KeyManager km)
             throws NoSuchAlgorithmException, KeyManagementException {
         SSLContext sslContext = SSLContext.getInstance(SslContextType.TLS.getSslContextType());
 
@@ -68,7 +68,7 @@ public class BindingProviderConfigurer {
         return sslContext;
     }
 
-    public static KeyManager getKeyFromKeyStoreUri(String keystoreUri, String keystorePassword)
+    public KeyManager getKeyFromKeyStoreUri(String keystoreUri, String keystorePassword)
             throws URISyntaxException, KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         if (keystorePassword == null) {
             keystorePassword = "";

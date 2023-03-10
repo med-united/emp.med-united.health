@@ -12,6 +12,7 @@ import de.gematik.ws.conn.eventservice.v7.GetCards;
 import de.gematik.ws.conn.eventservice.wsdl.v7.EventService;
 import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
+import health.medunited.emp.TerminalService;
 import health.medunited.security.BindingProviderConfigurer;
 
 public class EventServicePortProducer {
@@ -20,16 +21,19 @@ public class EventServicePortProducer {
     TrustManager trustManager;
     @Inject
     HostnameVerifier hostnameVerifier;
+    @Inject
+    TerminalService terminalService;
+    @Inject
+    BindingProviderConfigurer bindingProviderConfigurer;
     
     @Produces
     public EventServicePortType produce() {
-        String endpoint = "http://localhost/eventservice"; //"https://172.18.70.242:443/ws/EventService"
         EventServicePortType eventServicePortType = new EventService(getClass()
                 .getResource("/EventService.wsdl"))
                 .getEventServicePort();
         BindingProvider bp = (BindingProvider) eventServicePortType;
-        bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
-        BindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
+        bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, terminalService.eventServiceEndpoint());
+        bindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
         return eventServicePortType;
     }
 

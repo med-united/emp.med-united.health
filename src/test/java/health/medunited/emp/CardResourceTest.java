@@ -1,6 +1,8 @@
 package health.medunited.emp;
 import static io.restassured.RestAssured.given;
 
+import javax.inject.Inject;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +14,8 @@ import io.restassured.http.ContentType;
 
 @QuarkusTest
 public class CardResourceTest {
-  String mandantId = "Mandant1"; //"CC-stat"
-  String clientSystemId = "ClientID1"; //"ClinicCentre"
-  String workplaceId = "Workplace1"; //"IT-Abteilung"
+  @Inject
+  TerminalService terminalService;
   
   @BeforeAll
   public static void init(){
@@ -31,9 +32,9 @@ public class CardResourceTest {
   public void testDisablePin_success() {
          given()
             .when()
-              .header("x-mandant-id", mandantId)
-              .header("x-client-system-id", clientSystemId)
-              .header("x-workplace-id", workplaceId)
+              .header("x-mandant-id", terminalService.mandantId())
+              .header("x-client-system-id", terminalService.clientSystemId())
+              .header("x-workplace-id", terminalService.workplaceId())
               .accept(ContentType.XML)
             .post("/card/disable-pin")
             .then()

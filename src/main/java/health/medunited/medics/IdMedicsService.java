@@ -19,7 +19,6 @@ import org.xml.sax.SAXException;
 @RequestScoped
 public class IdMedicsService {
     
-    
     @ConfigProperty(name = "medics.developer.license")
     String medicsDeveloperLicense;
     @ConfigProperty(name = "medics.pwd")

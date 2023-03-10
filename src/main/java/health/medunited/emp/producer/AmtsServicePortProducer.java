@@ -8,6 +8,7 @@ import javax.xml.ws.BindingProvider;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSService;
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
+import health.medunited.emp.TerminalService;
 import health.medunited.security.BindingProviderConfigurer;
 
 public class AmtsServicePortProducer {
@@ -18,19 +19,19 @@ public class AmtsServicePortProducer {
     @Inject
     HostnameVerifier hostnameVerifier;
 
+    @Inject
+    TerminalService terminalService;
+    @Inject
+    BindingProviderConfigurer bindingProviderConfigurer;
+
     @Produces
-    public AMTSServicePortType produce() {
-
-        // TODO: Do service discovery
-        String endpoint = "http://localhost/amtsservice"; //"https://172.18.70.242:443/ws/AMTSService";
-        
-
+    public AMTSServicePortType produce() {      
         AMTSServicePortType amtsServicePortType = new AMTSService(getClass()
                 .getResource("/AMTSService.wsdl"))
                 .getAMTSServicePort();
         BindingProvider bp = (BindingProvider) amtsServicePortType;
-        bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
-        BindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
+        bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, terminalService.amtsServiceEndpoint());
+        bindingProviderConfigurer.configure(bp, trustManager, hostnameVerifier);
         return amtsServicePortType;
     }
 
