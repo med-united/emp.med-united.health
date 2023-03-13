@@ -13,6 +13,12 @@ public class CardResource {
     CardService cardService;
 
     @POST
+    @Path("/enable-pin")
+    public void enablePin() throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        cardService.enablePin();
+    }
+
+    @POST
     @Path("/disable-pin")
     public void disablePin() throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
         cardService.disablePin();

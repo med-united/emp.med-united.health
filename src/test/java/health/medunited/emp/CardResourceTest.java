@@ -29,7 +29,24 @@ public class CardResourceTest {
   }
 
   @Test
+  public void testEnablePin_success() {
+         // insert eGK card with [Kartentyp=eGK G2.1] into the terminal
+         given()
+            .when()
+              .header("x-mandant-id", terminalService.mandantId())
+              .header("x-client-system-id", terminalService.clientSystemId())
+              .header("x-workplace-id", terminalService.workplaceId())
+              .accept(ContentType.XML)
+            .post("/card/enable-pin")
+            .then()
+              .statusCode(204);
+              // Envelope.Body.DisablePinResponse.Status.Result=OK
+              // Envelope.Body.DisablePinResponse.Status.PinResult=OK
+    }
+
+  @Test
   public void testDisablePin_success() {
+         // insert eGK card with [Kartentyp=eGK G2.1] into the terminal
          given()
             .when()
               .header("x-mandant-id", terminalService.mandantId())
@@ -38,7 +55,9 @@ public class CardResourceTest {
               .accept(ContentType.XML)
             .post("/card/disable-pin")
             .then()
-              .statusCode(200);
+              .statusCode(204);
+              // Envelope.Body.DisablePinResponse.Status.Result=OK
+              // Envelope.Body.DisablePinResponse.Status.PinResult=OK
     }
 
 }

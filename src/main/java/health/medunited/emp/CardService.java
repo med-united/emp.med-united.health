@@ -82,6 +82,20 @@ public class CardService {
         mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle, usingPin);
     }
 
+    public void enablePin() throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
+        
+        Holder<Status> status = new Holder<Status>();
+        Holder<PinResultEnum> pinResult = new Holder<PinResultEnum>();
+        Holder<BigInteger> leftTries = new Holder<BigInteger>();
+
+        cardServicePortType.enablePin(ContextTypeProducer.clone(contextType), ehcHandle, "MRPIN.AMTS", status, pinResult, leftTries);
+
+        if(pinResult.value == PinResultEnum.ERROR) {
+            throw new de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage("Error", status.value.getError());
+        }
+    }
+
     public void disablePin() throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
         String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
         
