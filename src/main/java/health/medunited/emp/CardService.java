@@ -26,13 +26,14 @@ import de.gematik.ws.conn.cardservicecommon.v2.PinResponseType;
 import de.gematik.ws.conn.cardservicecommon.v2.PinResultEnum;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
+import de.gematik.ws.conn.eventservice.v7.GetCards;
+import de.gematik.ws.conn.eventservice.v7.GetCardsResponse;
 import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.Einwilligung;
 import health.medunited.emp.bmp.MedikationsPlan;
 import health.medunited.emp.jaxrs.PinType;
 import health.medunited.emp.producer.ContextTypeProducer;
-import health.medunited.emp.producer.EventServicePortProducer;
 
 @RequestScoped
 public class CardService {
@@ -63,20 +64,18 @@ public class CardService {
     public CardService() {
     }
 
-    public MedikationsPlan readEmpFromCard()
-            throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage {
-        
-        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
-        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
+    public MedikationsPlan readEmpFromCard() throws FaultMessage, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, JAXBException {
+        String ehcHandle = getFirstCardHandleOfType(CardTypeType.EGK);
+        String hpcHandle = getFirstCardHandleOfType(CardTypeType.SMC_B);
         return mpService.readMedicationsPlan(ehcHandle, hpcHandle);
     }
-
+    
     public WriteMPResponse writeEmpToCard(MedikationsPlan medikationsPlan)
             throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, DatatypeConfigurationException {
 
-        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
-        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
-
+        String ehcHandle = getFirstCardHandleOfType(CardTypeType.EGK);
+        String hpcHandle = getFirstCardHandleOfType(CardTypeType.SMC_B);
+        
         try {
             var rcr = consentService.readConsent(ehcHandle, hpcHandle);
             Einwilligung consentR = consentService.unmarshalConsent(new ByteArrayInputStream(rcr.getConsentData()));
@@ -90,20 +89,20 @@ public class CardService {
     }
 
     public ReadConsentResponse readConsentFromCard() throws FaultMessage{
-        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
-        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
+        String ehcHandle = getFirstCardHandleOfType(CardTypeType.EGK);
+        String hpcHandle = getFirstCardHandleOfType(CardTypeType.SMC_B);
         return consentService.readConsent(ehcHandle, hpcHandle);
     }
 
     public WriteConsentResponse writeConsentToCard(Einwilligung einwilligung) throws FaultMessage {
-        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
-        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
+        String ehcHandle = getFirstCardHandleOfType(CardTypeType.EGK);
+        String hpcHandle = getFirstCardHandleOfType(CardTypeType.SMC_B);
         return consentService.writeConsent(einwilligung, ehcHandle, hpcHandle);
     }
 
 
-    public PinResponseType enablePin(CardTypeType cardTypeType, PinType pinType) throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
-        String cardHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, cardTypeType);
+    public PinResponseType enablePin(CardTypeType cardType, PinType pinType) throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String cardHandle = getFirstCardHandleOfType(cardType);
         
         Holder<Status> status = new Holder<Status>();
         Holder<PinResultEnum> pinResult = new Holder<PinResultEnum>();
@@ -117,8 +116,8 @@ public class CardService {
         return createPinResponseType(status.value, pinResult.value, leftTries.value);
     }
 
-    public PinResponseType disablePin(CardTypeType cardTypeType, PinType pinType) throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
-        String cardHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, cardTypeType);
+    public PinResponseType disablePin(CardTypeType cardType, PinType pinType) throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String cardHandle = getFirstCardHandleOfType(cardType);
         
         Holder<Status> status = new Holder<Status>();
         Holder<PinResultEnum> pinResult = new Holder<PinResultEnum>();
@@ -132,8 +131,8 @@ public class CardService {
         return createPinResponseType(status.value, pinResult.value, leftTries.value);
     }
 
-    public GetPinStatusResponse getPinStatus(CardTypeType cardTypeType, PinType pinType) throws de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
-        String cardHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, cardTypeType);
+    public GetPinStatusResponse getPinStatus(CardTypeType cardType, PinType pinType) throws de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String cardHandle = getFirstCardHandleOfType(cardType);
         
         Holder<Status> status = new Holder<Status>();
         Holder<PinStatusEnum> pinStatus = new Holder<PinStatusEnum>();
@@ -159,4 +158,29 @@ public class CardService {
         return pt;
     }
 
+    private String getFirstCardHandleOfType(CardTypeType cardType) throws FaultMessage {
+        GetCards parameter = new GetCards();
+        parameter.setContext(contextType);
+        parameter.setCardType(cardType);
+        try {
+            return getCardsOfType(cardType)
+                .getCards()
+                .getCard()
+                .get(0)
+                .getCardHandle();
+        } catch (IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException(String.format("There is no card of type %s in the reader!", cardType.name()), e);
+        }
+    }
+
+    private GetCardsResponse getCardsOfType(CardTypeType cardType) throws FaultMessage {
+        GetCards parameter = new GetCards();
+        parameter.setContext(ContextTypeProducer.clone(contextType));
+        parameter.setCardType(cardType);
+        try{
+            return eventServicePortType.getCards(parameter);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException(String.format("There is no card of type %s in the reader!", cardType.name()), e);
+        }
+    }
 }
