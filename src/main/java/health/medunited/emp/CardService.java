@@ -14,6 +14,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
+import de.gematik.ws.conn.amts.amtsservice.v1.WriteConsentResponse;
+import de.gematik.ws.conn.amts.amtsservice.v1.WriteMPResponse;
 import de.gematik.ws.conn.cardservice.v8.GetPinStatusResponse;
 import de.gematik.ws.conn.cardservice.v8.PinStatusEnum;
 import de.gematik.ws.conn.cardservice.wsdl.v8.CardServicePortType;
@@ -67,7 +69,7 @@ public class CardService {
         return mpService.readMedicationsPlan(ehcHandle, hpcHandle);
     }
 
-    public void writeEmpToCard(MedikationsPlan medikationsPlan)
+    public WriteMPResponse writeEmpToCard(MedikationsPlan medikationsPlan)
             throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, DatatypeConfigurationException {
 
         String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
@@ -81,7 +83,7 @@ public class CardService {
             consentService.writeConsent(consentW, ehcHandle, hpcHandle);
         }
 
-        mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle);
+        return mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle);
     }
 
     public Einwilligung readConsentFromCard() throws FaultMessage{
@@ -90,10 +92,10 @@ public class CardService {
         return consentService.readConsent(ehcHandle, hpcHandle);
     }
 
-    public void writeConsentToCard(Einwilligung einwilligung) throws FaultMessage {
+    public WriteConsentResponse writeConsentToCard(Einwilligung einwilligung) throws FaultMessage {
         String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
         String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
-        consentService.writeConsent(einwilligung, ehcHandle, hpcHandle);
+        return consentService.writeConsent(einwilligung, ehcHandle, hpcHandle);
     }
 
 

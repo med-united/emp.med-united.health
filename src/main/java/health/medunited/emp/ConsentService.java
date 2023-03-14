@@ -13,6 +13,7 @@ import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage;
+import de.gematik.ws.conn.amts.amtsservice.v1.WriteConsentResponse;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.Einwilligung;
@@ -73,7 +74,7 @@ public class ConsentService {
         return unmarshalConsent(new ByteArrayInputStream(data.value));
     }
 
-    public void writeConsent(Einwilligung consent, String ehcHandle, String hpcHandle) {
+    public WriteConsentResponse writeConsent(Einwilligung consent, String ehcHandle, String hpcHandle) {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         byte[] data = marshalConsent(consent);
@@ -82,6 +83,14 @@ public class ConsentService {
         } catch (FaultMessage e) {
             throw new IllegalStateException("Unable to write Consent to Card", e);
         }
+        return createWriteConsentResponse(status.value, egkValid.value);
+    }
+
+    private WriteConsentResponse createWriteConsentResponse(Status status, Boolean egkValid) {
+        var wcr = new WriteConsentResponse();
+        wcr.setStatus(status);
+        wcr.setEGKValid(egkValid);
+        return wcr;
     }
 
 }

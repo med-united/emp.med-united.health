@@ -16,6 +16,7 @@ import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage;
+import de.gematik.ws.conn.amts.amtsservice.v1.WriteMPResponse;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.MedikationsPlan;
@@ -56,11 +57,16 @@ public class MedikationsPlanService {
         return dataMP.toByteArray();
     }
 
-    public void writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle) throws FaultMessage, PropertyException, JAXBException {
+    public WriteMPResponse writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle) throws FaultMessage, PropertyException, JAXBException {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         byte[] data = marshalMedicationPlan(medicationsPlan);
         amtsServicePort.writeMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), data, PinType.AMTS_PIN.getId(), status, egkValid);
+
+        var wmpr = new WriteMPResponse();
+        wmpr.setStatus(status.value);
+        wmpr.setEGKValid(egkValid.value);
+        return wmpr;
     }
 
     public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle) throws FaultMessage, JAXBException {  

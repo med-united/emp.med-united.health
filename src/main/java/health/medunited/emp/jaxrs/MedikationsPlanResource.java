@@ -7,6 +7,7 @@ import javax.ws.rs.Path;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 
+import de.gematik.ws.conn.amts.amtsservice.v1.WriteMPResponse;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.CardService;
 import health.medunited.emp.bmp.MedikationsPlan;
@@ -22,8 +23,8 @@ public class MedikationsPlanResource {
     }
 
     @POST
-    public void postEMP(MedikationsPlan medkationsPlan) throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, DatatypeConfigurationException {
-        cardService.writeEmpToCard(medkationsPlan);
+    public WriteMPResponse postEMP(MedikationsPlan medkationsPlan) throws FaultMessage, JAXBException, de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage, DatatypeConfigurationException {
+        return cardService.writeEmpToCard(medkationsPlan);
     }
 
 }

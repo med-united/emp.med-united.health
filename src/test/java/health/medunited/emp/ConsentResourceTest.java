@@ -58,7 +58,7 @@ public class ConsentResourceTest {
             new String(getClass().getResourceAsStream("/Einwilligung_2.xml").readAllBytes(), StandardCharsets.UTF_8))
         .post("/consent")
         .then()
-          .statusCode(204);
+          .statusCode(200);
   }
 
 }
