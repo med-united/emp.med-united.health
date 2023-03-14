@@ -58,7 +58,7 @@ public class MedikationsPlanResourceTest {
             new String(getClass().getResourceAsStream("/Medikationsplan_2.xml").readAllBytes(), StandardCharsets.UTF_8))
         .post("/emp")
         .then()
-          .statusCode(204);
+          .statusCode(200);
   }
 
   @Test

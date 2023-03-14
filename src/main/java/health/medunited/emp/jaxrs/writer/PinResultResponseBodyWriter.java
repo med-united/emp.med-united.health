@@ -16,16 +16,16 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import de.gematik.ws.conn.cardservice.v8.GetPinStatusResponse;
+import de.gematik.ws.conn.cardservicecommon.v2.PinResponseType;
 
 @Provider
-public class PinStatusBodyWriter implements MessageBodyWriter<GetPinStatusResponse> {
-    private static Logger log = Logger.getLogger(PinStatusBodyWriter.class.getName());
+public class PinResultResponseBodyWriter implements MessageBodyWriter<PinResponseType> {
+    private static Logger log = Logger.getLogger(PinResultResponseBodyWriter.class.getName());
     static JAXBContext prtJaxbContext;
 
     static {
         try {
-            prtJaxbContext = JAXBContext.newInstance(GetPinStatusResponse.class);
+            prtJaxbContext = JAXBContext.newInstance(PinResponseType.class);
         } catch (JAXBException e) {
             log.log(Level.SEVERE, "Could not init JAXBContext", e);
         }
@@ -33,12 +33,12 @@ public class PinStatusBodyWriter implements MessageBodyWriter<GetPinStatusRespon
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.isAssignableFrom(GetPinStatusResponse.class) 
+        return type.isAssignableFrom(PinResponseType.class) 
             && (mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE) || mediaType.isCompatible(MediaType.APPLICATION_OCTET_STREAM_TYPE));
     }
 
     @Override
-    public void writeTo(GetPinStatusResponse t, Class<?> type, Type genericType, Annotation[] annotations,
+    public void writeTo(PinResponseType t, Class<?> type, Type genericType, Annotation[] annotations,
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
         Marshaller prtMarshaller;

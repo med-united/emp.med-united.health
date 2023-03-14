@@ -1,6 +1,5 @@
 package health.medunited.emp;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
@@ -13,6 +12,7 @@ import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
 import de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage;
+import de.gematik.ws.conn.amts.amtsservice.v1.ReadConsentResponse;
 import de.gematik.ws.conn.amts.amtsservice.v1.WriteConsentResponse;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
@@ -60,7 +60,7 @@ public class ConsentService {
         return dataConsent.toByteArray();
     }
 
-    public Einwilligung readConsent(String ehcHandle, String hpcHandle) {
+    public ReadConsentResponse readConsent(String ehcHandle, String hpcHandle) {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         Holder<byte[]> data = new Holder<>();
@@ -71,7 +71,11 @@ public class ConsentService {
             throw new IllegalStateException("Unable to read Consent from Card", e);
         }
 
-        return unmarshalConsent(new ByteArrayInputStream(data.value));
+        var rcr =  new ReadConsentResponse();
+        rcr.setStatus(status.value);
+        rcr.setConsentData(data.value);
+        rcr.setEGKValid(egkValid.value);
+        return rcr;
     }
 
     public WriteConsentResponse writeConsent(Einwilligung consent, String ehcHandle, String hpcHandle) {

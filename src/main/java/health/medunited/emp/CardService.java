@@ -1,5 +1,6 @@
 package health.medunited.emp;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -14,6 +15,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
+import de.gematik.ws.conn.amts.amtsservice.v1.ReadConsentResponse;
 import de.gematik.ws.conn.amts.amtsservice.v1.WriteConsentResponse;
 import de.gematik.ws.conn.amts.amtsservice.v1.WriteMPResponse;
 import de.gematik.ws.conn.cardservice.v8.GetPinStatusResponse;
@@ -76,7 +78,8 @@ public class CardService {
         String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
 
         try {
-            Einwilligung consentR = consentService.readConsent(ehcHandle, hpcHandle);
+            var rcr = consentService.readConsent(ehcHandle, hpcHandle);
+            Einwilligung consentR = consentService.unmarshalConsent(new ByteArrayInputStream(rcr.getConsentData()));
         } catch (Exception ex) {
             Einwilligung consentW = consentService.unmarshalConsent(getClass().getResourceAsStream("/Einwilligung_2.xml"));
             consentW.setEinwilligungsdatum(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) Calendar.getInstance()));
@@ -86,7 +89,7 @@ public class CardService {
         return mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle);
     }
 
-    public Einwilligung readConsentFromCard() throws FaultMessage{
+    public ReadConsentResponse readConsentFromCard() throws FaultMessage{
         String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
         String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
         return consentService.readConsent(ehcHandle, hpcHandle);

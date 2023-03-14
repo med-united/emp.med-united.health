@@ -16,17 +16,16 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import de.gematik.ws.conn.amts.amtsservice.v1.WriteConsentResponse;
-
+import de.gematik.ws.conn.cardservice.v8.GetPinStatusResponse;
 
 @Provider
-public class WriteConsentResponseBodyWriter implements MessageBodyWriter<WriteConsentResponse> {
-    private static Logger log = Logger.getLogger(WriteMPResponseBodyWriter.class.getName());
-    static JAXBContext mpJaxbContext;
+public class PinStatusResponseBodyWriter implements MessageBodyWriter<GetPinStatusResponse> {
+    private static Logger log = Logger.getLogger(PinStatusResponseBodyWriter.class.getName());
+    static JAXBContext prtJaxbContext;
 
     static {
         try {
-            mpJaxbContext = JAXBContext.newInstance(WriteConsentResponse.class);
+            prtJaxbContext = JAXBContext.newInstance(GetPinStatusResponse.class);
         } catch (JAXBException e) {
             log.log(Level.SEVERE, "Could not init JAXBContext", e);
         }
@@ -34,19 +33,19 @@ public class WriteConsentResponseBodyWriter implements MessageBodyWriter<WriteCo
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.isAssignableFrom(WriteConsentResponse.class) 
+        return type.isAssignableFrom(GetPinStatusResponse.class) 
             && (mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE) || mediaType.isCompatible(MediaType.APPLICATION_OCTET_STREAM_TYPE));
     }
 
     @Override
-    public void writeTo(WriteConsentResponse t, Class<?> type, Type genericType, Annotation[] annotations,
+    public void writeTo(GetPinStatusResponse t, Class<?> type, Type genericType, Annotation[] annotations,
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
-        Marshaller mpMarshaller;
+        Marshaller prtMarshaller;
         try {
-            mpMarshaller = mpJaxbContext.createMarshaller();
-            mpMarshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
-            mpMarshaller.marshal(t, entityStream);
+            prtMarshaller = prtJaxbContext.createMarshaller();
+            prtMarshaller.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-15");
+            prtMarshaller.marshal(t, entityStream);
         } catch (JAXBException e) {
             throw new WebApplicationException(e);
         }

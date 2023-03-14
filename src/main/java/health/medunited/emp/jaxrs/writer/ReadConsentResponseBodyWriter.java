@@ -16,16 +16,17 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import health.medunited.emp.bmp.Einwilligung;
+import de.gematik.ws.conn.amts.amtsservice.v1.ReadConsentResponse;
+
 
 @Provider
-public class ConsentMessageBodyWriter implements MessageBodyWriter<Einwilligung> {
-    private static Logger log = Logger.getLogger(ConsentMessageBodyWriter.class.getName());
+public class ReadConsentResponseBodyWriter implements MessageBodyWriter<ReadConsentResponse> {
+    private static Logger log = Logger.getLogger(ReadConsentResponseBodyWriter.class.getName());
     static JAXBContext mpJaxbContext;
 
     static {
         try {
-            mpJaxbContext = JAXBContext.newInstance(Einwilligung.class);
+            mpJaxbContext = JAXBContext.newInstance(ReadConsentResponse.class);
         } catch (JAXBException e) {
             log.log(Level.SEVERE, "Could not init JAXBContext", e);
         }
@@ -33,12 +34,12 @@ public class ConsentMessageBodyWriter implements MessageBodyWriter<Einwilligung>
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.isAssignableFrom(Einwilligung.class) 
+        return type.isAssignableFrom(ReadConsentResponse.class) 
             && (mediaType.isCompatible(MediaType.APPLICATION_XML_TYPE) || mediaType.isCompatible(MediaType.APPLICATION_OCTET_STREAM_TYPE));
     }
 
     @Override
-    public void writeTo(Einwilligung t, Class<?> type, Type genericType, Annotation[] annotations,
+    public void writeTo(ReadConsentResponse t, Class<?> type, Type genericType, Annotation[] annotations,
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
         Marshaller mpMarshaller;
