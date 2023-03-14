@@ -19,6 +19,7 @@ import de.gematik.ws.conn.amts.amtsservice.v1.FaultMessage;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
 import health.medunited.emp.bmp.MedikationsPlan;
+import health.medunited.emp.jaxrs.PinType;
 import health.medunited.emp.producer.ContextTypeProducer;
 
 @RequestScoped
@@ -35,7 +36,7 @@ public class MedikationsPlanService {
         try {
             mpJaxbContext = JAXBContext.newInstance(MedikationsPlan.class);
         } catch (JAXBException e) {
-            log.log(Level.SEVERE, "Could not ini JAXBContext", e);
+            log.log(Level.SEVERE, "Could not init JAXBContext", e);
         }
     }
 
@@ -55,24 +56,24 @@ public class MedikationsPlanService {
         return dataMP.toByteArray();
     }
 
-    public void writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage, PropertyException, JAXBException {
+    public void writeMedicationsPlan(MedikationsPlan medicationsPlan, String ehcHandle, String hpcHandle) throws FaultMessage, PropertyException, JAXBException {
         Holder<Status> status = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         byte[] data = marshalMedicationPlan(medicationsPlan);
-        amtsServicePort.writeMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), data, usingPin, status, egkValid);
+        amtsServicePort.writeMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), data, PinType.AMTS_PIN.getId(), status, egkValid);
     }
 
-    public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage, JAXBException {  
-        byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle, usingPin);   
+    public MedikationsPlan readMedicationsPlan(String ehcHandle, String hpcHandle) throws FaultMessage, JAXBException {  
+        byte[] empBytes = readMedicationsPlanAsBytes(ehcHandle, hpcHandle);   
         return unmarshalMedicationPlan(new ByteArrayInputStream(empBytes));
     }
 
-    private byte[] readMedicationsPlanAsBytes(String ehcHandle, String hpcHandle, String usingPin) throws FaultMessage{
+    private byte[] readMedicationsPlanAsBytes(String ehcHandle, String hpcHandle) throws FaultMessage{
         Holder<Status> status = new Holder<>();
         Holder<byte[]> data = new Holder<>();
         Holder<Boolean> egkValid = new Holder<>();
         Holder<Integer> egkUsage = new Holder<>();
-        amtsServicePort.readMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), usingPin, status, data, egkValid, egkUsage);
+        amtsServicePort.readMP(ehcHandle, hpcHandle, ContextTypeProducer.clone(context), PinType.AMTS_PIN.getId(), status, data, egkValid, egkUsage);
         return data.value;
     }
 }

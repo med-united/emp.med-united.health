@@ -14,8 +14,11 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.ws.Holder;
 
 import de.gematik.ws.conn.amts.amtsservice.v1.AMTSServicePortType;
+import de.gematik.ws.conn.cardservice.v8.GetPinStatusResponse;
+import de.gematik.ws.conn.cardservice.v8.PinStatusEnum;
 import de.gematik.ws.conn.cardservice.wsdl.v8.CardServicePortType;
 import de.gematik.ws.conn.cardservicecommon.v2.CardTypeType;
+import de.gematik.ws.conn.cardservicecommon.v2.PinResponseType;
 import de.gematik.ws.conn.cardservicecommon.v2.PinResultEnum;
 import de.gematik.ws.conn.connectorcommon.v5.Status;
 import de.gematik.ws.conn.connectorcontext.v2.ContextType;
@@ -23,13 +26,12 @@ import de.gematik.ws.conn.eventservice.wsdl.v7.EventServicePortType;
 import de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage;
 import health.medunited.emp.bmp.Einwilligung;
 import health.medunited.emp.bmp.MedikationsPlan;
+import health.medunited.emp.jaxrs.PinType;
 import health.medunited.emp.producer.ContextTypeProducer;
 import health.medunited.emp.producer.EventServicePortProducer;
 
 @RequestScoped
 public class CardService {
-    private String usingPin = "AMTS-PIN";
-
     @Inject
     ContextType contextType;
 
@@ -62,7 +64,7 @@ public class CardService {
         
         String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
         String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
-        return mpService.readMedicationsPlan(ehcHandle, hpcHandle, usingPin);
+        return mpService.readMedicationsPlan(ehcHandle, hpcHandle);
     }
 
     public void writeEmpToCard(MedikationsPlan medikationsPlan)
@@ -79,35 +81,77 @@ public class CardService {
             consentService.writeConsent(consentW, ehcHandle, hpcHandle);
         }
 
-        mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle, usingPin);
+        mpService.writeMedicationsPlan(medikationsPlan, ehcHandle, hpcHandle);
     }
 
-    public void enablePin() throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+    public Einwilligung readConsentFromCard() throws FaultMessage{
         String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
+        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
+        return consentService.readConsent(ehcHandle, hpcHandle);
+    }
+
+    public void writeConsentToCard(Einwilligung einwilligung) throws FaultMessage {
+        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
+        String hpcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.SMC_B);
+        consentService.writeConsent(einwilligung, ehcHandle, hpcHandle);
+    }
+
+
+    public PinResponseType enablePin(CardTypeType cardTypeType, PinType pinType) throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String cardHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, cardTypeType);
         
         Holder<Status> status = new Holder<Status>();
         Holder<PinResultEnum> pinResult = new Holder<PinResultEnum>();
         Holder<BigInteger> leftTries = new Holder<BigInteger>();
 
-        cardServicePortType.enablePin(ContextTypeProducer.clone(contextType), ehcHandle, "MRPIN.AMTS", status, pinResult, leftTries);
+        cardServicePortType.enablePin(ContextTypeProducer.clone(contextType), cardHandle, pinType.getId(), status, pinResult, leftTries);
 
         if(pinResult.value == PinResultEnum.ERROR) {
             throw new de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage("Error", status.value.getError());
         }
+        return createPinResponseType(status.value, pinResult.value, leftTries.value);
     }
 
-    public void disablePin() throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
-        String ehcHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, CardTypeType.EGK);
+    public PinResponseType disablePin(CardTypeType cardTypeType, PinType pinType) throws FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String cardHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, cardTypeType);
         
         Holder<Status> status = new Holder<Status>();
         Holder<PinResultEnum> pinResult = new Holder<PinResultEnum>();
         Holder<BigInteger> leftTries = new Holder<BigInteger>();
 
-        cardServicePortType.disablePin(ContextTypeProducer.clone(contextType), ehcHandle, "MRPIN.AMTS", status, pinResult, leftTries);
+        cardServicePortType.disablePin(ContextTypeProducer.clone(contextType), cardHandle, pinType.getId(), status, pinResult, leftTries);
 
         if(pinResult.value == PinResultEnum.ERROR) {
             throw new de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage("Error", status.value.getError());
         }
+        return createPinResponseType(status.value, pinResult.value, leftTries.value);
+    }
+
+    public GetPinStatusResponse getPinStatus(CardTypeType cardTypeType, PinType pinType) throws de.gematik.ws.conn.eventservice.wsdl.v7.FaultMessage, de.gematik.ws.conn.cardservice.wsdl.v8.FaultMessage {
+        String cardHandle = EventServicePortProducer.getFirstCardHandleOfType( ContextTypeProducer.clone(contextType), eventServicePortType, cardTypeType);
+        
+        Holder<Status> status = new Holder<Status>();
+        Holder<PinStatusEnum> pinStatus = new Holder<PinStatusEnum>();
+        Holder<BigInteger> leftTries = new Holder<BigInteger>();
+
+        cardServicePortType.getPinStatus(ContextTypeProducer.clone(contextType), cardHandle, pinType.getId(), status, pinStatus, leftTries);
+        return createPinStatusResponse(status.value, pinStatus.value, leftTries.value);
+    }
+
+    private PinResponseType createPinResponseType(Status status, PinResultEnum pinResult, BigInteger leftTries){
+        PinResponseType pr = new PinResponseType();
+        pr.setStatus(status);
+        pr.setPinResult(pinResult);
+        pr.setLeftTries(leftTries);
+        return pr;
+    }
+
+    private GetPinStatusResponse createPinStatusResponse(Status status, PinStatusEnum pinStatus, BigInteger leftTries){
+        GetPinStatusResponse pt = new GetPinStatusResponse();
+        pt.setStatus(status);
+        pt.setPinStatus(pinStatus);
+        pt.setLeftTries(leftTries);
+        return pt;
     }
 
 }

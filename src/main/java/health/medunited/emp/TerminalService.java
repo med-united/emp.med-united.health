@@ -24,5 +24,21 @@ public interface TerminalService {
     default String cardServiceEndpoint(){
         return host()+cardService();
     }
+
+    default String headerNameMandantId(){
+        return "x-mandant-id";
+    }
+
+    default String headerNameClientSystemId(){
+        return "x-client-system-id";
+    }
+
+    default String headerNameWorkplaceId(){
+        return "x-workplace-id";
+    }
+
+    default String headerNameUserId(){
+        return "x-user-id";
+    }
     
 }

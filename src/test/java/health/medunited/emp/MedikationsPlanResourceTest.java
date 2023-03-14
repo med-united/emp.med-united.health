@@ -17,7 +17,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 
 @QuarkusTest
-public class EmpResourceTest {
+public class MedikationsPlanResourceTest {
   @Inject
   TerminalService terminalService;
 
@@ -36,9 +36,9 @@ public class EmpResourceTest {
   public void testRead_success() {
     given()
         .when()
-          .header("x-mandant-id", terminalService.mandantId())
-          .header("x-client-system-id", terminalService.clientSystemId())
-          .header("x-workplace-id", terminalService.workplaceId())
+          .header(terminalService.headerNameMandantId(), terminalService.mandantId())
+          .header(terminalService.headerNameClientSystemId(), terminalService.clientSystemId())
+          .header(terminalService.headerNameWorkplaceId(), terminalService.workplaceId())
           .accept(ContentType.XML)
         .get("/emp")
         .then()
@@ -49,9 +49,9 @@ public class EmpResourceTest {
   public void testWrite_success() throws IOException {
     given()
         .when()
-          .header("x-mandant-id", terminalService.mandantId())
-          .header("x-client-system-id", terminalService.clientSystemId())
-          .header("x-workplace-id", terminalService.workplaceId())
+          .header(terminalService.headerNameMandantId(), terminalService.mandantId())
+          .header(terminalService.headerNameClientSystemId(), terminalService.clientSystemId())
+          .header(terminalService.headerNameWorkplaceId(), terminalService.workplaceId())
           .accept(ContentType.XML)
           .contentType(ContentType.XML)
           .body(
@@ -65,9 +65,9 @@ public class EmpResourceTest {
   public void testRead_wrongMandantId() {
     given()
         .when()
-          .header("x-mandant-id", "WRONG_ID")
-          .header("x-client-system-id", "WRONG_ID")
-          .header("x-workplace-id", "WRONG_ID")
+          .header(terminalService.headerNameMandantId(), "WRONG_ID")
+          .header(terminalService.headerNameClientSystemId(), "WRONG_ID")
+          .header(terminalService.headerNameWorkplaceId(), "WRONG_ID")
         .get("/emp")
         .then()
           .statusCode(500);

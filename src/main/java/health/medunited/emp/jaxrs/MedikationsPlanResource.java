@@ -12,7 +12,7 @@ import health.medunited.emp.CardService;
 import health.medunited.emp.bmp.MedikationsPlan;
 
 @Path("/emp")
-public class EmpResource {
+public class MedikationsPlanResource {
     @Inject
     CardService cardService;
 

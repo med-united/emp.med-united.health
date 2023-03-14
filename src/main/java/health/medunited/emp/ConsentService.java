@@ -83,4 +83,5 @@ public class ConsentService {
             throw new IllegalStateException("Unable to write Consent to Card", e);
         }
     }
+
 }
